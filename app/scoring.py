@@ -97,10 +97,14 @@ def contains_sequence(outer: tuple[str, ...], inner: tuple[str, ...]) -> bool:
 
 
 def skills_match(wanted: str, have: str) -> bool:
+    """True if the job skill's tokens appear, in order and contiguous, inside the CV skill.
+
+    One direction only: CV "SQL query tuning" satisfies job "SQL",
+    but CV "Data" does not satisfy job "Data analysis".
+    """
     if normalize_skill(wanted) == normalize_skill(have):
         return True
-    a, b = skill_tokens(wanted), skill_tokens(have)
-    return contains_sequence(a, b) or contains_sequence(b, a)
+    return contains_sequence(skill_tokens(have), skill_tokens(wanted))
 
 
 def implies(have: str, wanted: str) -> bool:

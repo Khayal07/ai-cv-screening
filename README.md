@@ -32,10 +32,11 @@ Job description ─────────────────────�
 | Languages           | 5      | share of required languages found                |
 
 Skills are normalized (case, whitespace, aliases such as `JS → JavaScript` and `k8s → Kubernetes`).
-A job skill also counts as matched when its word tokens appear as a contiguous sequence inside a CV skill,
-or the other way round: `SQL` satisfies `SQL query optimisation`. Matching uses whole tokens, never substrings,
-so `Java` never matches `JavaScript`, `Go` never matches `MongoDB`, and `C` never matches `C++`, `C#` or `Objective-C`.
-When the CV wording differs, the reason names it, for example `SQL query optimisation via SQL`.
+A job skill also counts as matched when its word tokens appear as a contiguous sequence inside a CV skill:
+CV `SQL query optimisation` satisfies job `SQL`. This works in one direction only, so a short CV skill never
+satisfies a longer job skill (CV `Data` does not satisfy job `Data analysis`). Matching uses whole tokens, never
+substrings, so `Java` never matches `JavaScript`, `Go` never matches `MongoDB`, and `C` never matches `C++`, `C#`
+or `Objective-C`. When the CV wording differs, the reason names it, for example `SQL via SQL query optimisation`.
 A small one-way implication map (`IMPLIES` in `app/scoring.py`) lets a specific CV skill satisfy a general job skill:
 `PostgreSQL → SQL`, `FastAPI → Python`, `React → JavaScript`. It never works in reverse (CV `SQL` does not satisfy job
 `PostgreSQL`) and never chains (`Next.js` satisfies `React`, not `JavaScript`). The reason reads `SQL via PostgreSQL`.

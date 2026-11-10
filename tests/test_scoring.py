@@ -149,10 +149,10 @@ def test_no_false_matches_in_either_direction(left: str, right: str) -> None:
     assert split_matches([left], [right]) == ([], [left])
 
 
-MATCH_PAIRS = [
-    ("SQL query optimisation", "SQL"),
+MATCH_PAIRS = [  # (job skill, CV skill)
     ("SQL", "SQL query optimisation"),
-    ("REST API design", "REST"),
+    ("REST", "REST API design"),
+    ("Data analysis", "Data analysis and reporting"),
     ("Kubernetes", "K8s"),
     ("JavaScript", "JS"),
     ("Node.js", "Node"),
@@ -167,6 +167,24 @@ MATCH_PAIRS = [
 def test_token_sequence_matches(wanted: str, have: str) -> None:
     assert skills_match(wanted, have)
     assert split_matches([wanted], [have]) == ([wanted], [])
+
+
+SHORT_CV_SKILL_PAIRS = [  # (longer job skill, shorter CV skill): never a match
+    ("Data analysis", "Data"),
+    ("SQL query optimisation", "SQL"),
+    ("REST API design", "REST"),
+    ("SQL Server", "SQL"),
+    ("Machine learning engineering", "Machine learning"),
+    ("C++ 17", "C++"),
+]
+
+
+@pytest.mark.parametrize(("wanted", "have"), SHORT_CV_SKILL_PAIRS)
+def test_short_cv_skill_does_not_satisfy_longer_job_skill(wanted: str, have: str) -> None:
+    assert not skills_match(wanted, have)
+    assert split_matches([wanted], [have]) == ([], [wanted])
+    # The opposite direction is the one that matches.
+    assert skills_match(have, wanted)
 
 
 def test_tokens_must_be_contiguous() -> None:
@@ -189,12 +207,12 @@ def test_exact_match_preferred_over_token_match() -> None:
 
 
 def test_reason_names_the_cv_skill_behind_each_loose_match() -> None:
-    cv = make_cv(skills=["Python", "SQL", "K8s"])
-    job = make_job(required_skills=["Python", "SQL query optimisation", "Kubernetes", "Rust"])
+    cv = make_cv(skills=["Python", "SQL query optimisation", "K8s"])
+    job = make_job(required_skills=["Python", "SQL", "Kubernetes", "Rust"])
     reason = score_match(cv, job).reasons[0]
     assert reason == (
         "Required skills: 3 of 4 matched "
-        "(SQL query optimisation via SQL; Kubernetes via K8s; missing: Rust)."
+        "(SQL via SQL query optimisation; Kubernetes via K8s; missing: Rust)."
     )
 
 
@@ -204,11 +222,11 @@ def test_exact_matches_need_no_via_note() -> None:
 
 
 def test_loose_match_raises_score() -> None:
-    job = make_job(required_skills=["Python", "SQL query optimisation"], nice_to_have_skills=[])
+    job = make_job(required_skills=["Python", "SQL"], nice_to_have_skills=[])
     strict = score_match(make_cv(skills=["Python"]), job).score
-    loose = score_match(make_cv(skills=["Python", "SQL"]), job).score
-    assert loose > strict
-    assert score_match(make_cv(skills=["Python", "SQL"]), job).missing_skills == []
+    loose_cv = make_cv(skills=["Python", "SQL query tuning"])
+    assert score_match(loose_cv, job).score > strict
+    assert score_match(loose_cv, job).missing_skills == []
 
 
 # ---------- One-way implications ----------
@@ -240,21 +258,7 @@ def test_cv_skill_implies_job_skill(job_skill: str, cv_skill: str) -> None:
     assert missing == []
 
 
-SHORT_CV_SKILL_STILL_MATCHES = pytest.mark.xfail(
-    strict=True, reason="a short CV skill still satisfies a longer job skill"
-)
-
-
-def reversed_pairs() -> list[Any]:
-    """Implication pairs with roles swapped; job 'SQL Server' vs CV 'SQL' needs stricter tokens."""
-    loose = {"SQL Server", "MSSQL"}
-    return [
-        pytest.param(job, cv, marks=SHORT_CV_SKILL_STILL_MATCHES) if cv in loose else (job, cv)
-        for job, cv in IMPLIED_PAIRS
-    ]
-
-
-@pytest.mark.parametrize(("job_skill", "cv_skill"), reversed_pairs())
+@pytest.mark.parametrize(("job_skill", "cv_skill"), IMPLIED_PAIRS)
 def test_implication_is_one_way(job_skill: str, cv_skill: str) -> None:
     # Swap roles: the general CV skill never satisfies the specific job skill.
     matches, missing = match_skills([cv_skill], [job_skill])
