@@ -23,3 +23,4 @@ Thumbs.db
 
 # Browser automation output
 .playwright-mcp/
+request.json

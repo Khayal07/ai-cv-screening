@@ -365,7 +365,8 @@
       && Array.isArray(result.breakdown)
       && Array.isArray(result.matched_skills)
       && Array.isArray(result.missing_skills)
-      && Array.isArray(result.reasons);
+      && Array.isArray(result.reasons)
+      && (result.warnings === undefined || Array.isArray(result.warnings));
   }
 
   function scoreRange(score) {
@@ -385,6 +386,7 @@
     renderChips("matched-skills", result.matched_skills, "No listed skills matched.");
     renderChips("missing-skills", result.missing_skills, "None. Every required skill was found.");
     renderList("reasons", result.reasons);
+    renderWarnings(result.warnings || []);
     $("disclaimer").textContent = String(result.disclaimer || "");
     showState("state-results");
     $("results-heading").focus();
@@ -439,6 +441,11 @@
 
   function renderList(listId, lines) {
     $(listId).replaceChildren(...lines.map((line) => el("li", {}, String(line))));
+  }
+
+  function renderWarnings(warnings) {
+    renderList("warnings", warnings);
+    $("warnings-block").hidden = warnings.length === 0;
   }
 
   // ---------- Animation ----------

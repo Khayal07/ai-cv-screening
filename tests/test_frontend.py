@@ -120,6 +120,8 @@ def test_inputs_have_labels(field_id: str) -> None:
         'id="matched-skills"',
         'id="missing-skills"',
         'id="reasons"',
+        'id="warnings"',
+        'id="warnings-block"',
         'id="disclaimer"',
     ],
 )
@@ -153,6 +155,21 @@ def test_script_calls_both_match_endpoints_and_samples() -> None:
     js = read_static("app.js")
     for endpoint in ('"/match"', '"/match/pdf"', '"/samples"'):
         assert endpoint in js
+
+
+def test_warnings_block_is_a_hidden_note_by_default() -> None:
+    html = read_static("index.html")
+    start = html.index('id="warnings-block"')
+    tag = html[html.rindex("<", 0, start) : html.index(">", start)]
+    assert 'role="note"' in tag and "hidden" in tag
+    assert html.index('id="warnings-block"') < html.index('id="breakdown"')
+
+
+def test_script_renders_warnings_and_accepts_results_without_them() -> None:
+    js = read_static("app.js")
+    assert "renderWarnings(result.warnings || [])" in js
+    assert "result.warnings === undefined || Array.isArray(result.warnings)" in js
+    assert '$("warnings-block").hidden = warnings.length === 0' in js
 
 
 def test_frontend_handles_not_a_cv_with_reasons() -> None:

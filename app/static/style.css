@@ -897,6 +897,51 @@ textarea:focus-visible {
   background: var(--muted);
 }
 
+/* Warnings: shown above the breakdown so they are read before the score is trusted */
+
+.warnings {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  border-left: 4px solid var(--warn);
+  border-radius: var(--radius-small);
+}
+
+.warnings-title {
+  color: var(--warn);
+  font-size: var(--text-small);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.warnings-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.warnings-list li {
+  position: relative;
+  padding-left: var(--space-5);
+}
+
+.warnings-list li::before {
+  content: "!" / "";
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  display: grid;
+  place-items: center;
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
+  background: var(--warn);
+  color: var(--surface);
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1;
+}
+
 /* Disclaimer */
 
 .disclaimer {
