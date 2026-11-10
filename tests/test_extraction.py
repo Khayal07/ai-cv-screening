@@ -5,6 +5,7 @@ import pytest
 
 from app.extraction import (
     CV_SYSTEM_PROMPT,
+    JOB_SYSTEM_PROMPT,
     MAX_INPUT_CHARS,
     PROMPT_VERSION,
     RETRY_NOTE,
@@ -90,4 +91,18 @@ def test_cv_prompt_excludes_personal_data() -> None:
 
 
 def test_prompt_version_is_set() -> None:
-    assert PROMPT_VERSION == "v1"
+    assert PROMPT_VERSION == "v2"
+
+
+@pytest.mark.parametrize("prompt", [CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT])
+def test_prompts_ask_for_single_concept_skills(prompt: str) -> None:
+    assert "single-concept" in prompt
+    assert "Split compound phrases" in prompt
+    assert '"SQL query optimisation" -> ["SQL"]' in prompt
+    assert '"REST API design" -> ["REST"]' in prompt
+
+
+def test_prompt_version_changes_cache_key(tmp_path: Path) -> None:
+    current = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=PROMPT_VERSION)
+    previous = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v1")
+    assert current.cache_key(CV_SYSTEM_PROMPT, "cv") != previous.cache_key(CV_SYSTEM_PROMPT, "cv")

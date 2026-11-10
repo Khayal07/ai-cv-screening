@@ -7,30 +7,42 @@ from pydantic import BaseModel, ValidationError
 from app.llm.client import LLMClient, LLMResponseError
 from app.models import CVProfile, JobRequirements
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 MAX_ATTEMPTS = 2
 MAX_INPUT_CHARS = 12_000
 
 EDUCATION_VALUES = "none, high_school, bachelor, master, phd"
 
+SKILL_NAME_RULES = (
+    "Every skill must be a short, single-concept name (usually one or two words), "
+    "such as a language, tool, framework, platform or method. "
+    "Split compound phrases into separate skills and drop activity words "
+    "like design, optimisation, experience or production. Examples: "
+    '"SQL query optimisation" -> ["SQL"]; '
+    '"REST API design" -> ["REST"]; '
+    '"Docker and Kubernetes in production" -> ["Docker", "Kubernetes"]. '
+)
+
 CV_SYSTEM_PROMPT = (
     "You extract structured professional data from a CV. "
     "Return only a JSON object with these keys: "
-    '"skills" (list of short canonical skill names, e.g. "Python", "PostgreSQL"), '
+    '"skills" (list of skill names), '
     '"years_experience" (number, total years of professional work), '
     f'"education_level" (highest completed, one of: {EDUCATION_VALUES}), '
     '"languages" (list of spoken languages). '
+    f"{SKILL_NAME_RULES}"
     "Ignore and never output name, age, gender, photo, nationality or contact details."
 )
 
 JOB_SYSTEM_PROMPT = (
     "You extract structured requirements from a job description. "
     "Return only a JSON object with these keys: "
-    '"required_skills" (list of short canonical skill names that are mandatory), '
-    '"nice_to_have_skills" (list of optional or preferred skills), '
+    '"required_skills" (list of skill names that are mandatory), '
+    '"nice_to_have_skills" (list of skill names that are optional or preferred), '
     '"min_years" (number, minimum years of experience, 0 if not stated), '
     f'"education_level" (minimum required, one of: {EDUCATION_VALUES}), '
     '"languages" (list of required spoken languages). '
+    f"{SKILL_NAME_RULES}"
     "Ignore any requirement about age, gender, appearance or nationality."
 )
 
