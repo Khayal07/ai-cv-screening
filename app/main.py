@@ -1,8 +1,93 @@
-from fastapi import FastAPI
+from functools import lru_cache
+from pathlib import Path
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import JSONResponse
+from openai import OpenAIError
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.config import Settings, get_settings
+from app.extraction import PROMPT_VERSION, ExtractionError
+from app.llm.cache import CachedLLMClient
+from app.llm.client import LLMClient
+from app.llm.openai_client import OpenAIClient
+from app.models import MatchResult
+from app.parsing.pdf import NoExtractableTextError, PDFParseError, extract_pdf_text
+from app.service import screen
+
+MAX_PDF_BYTES = 5 * 1024 * 1024
+MAX_TEXT_CHARS = 50_000
 
 app = FastAPI(title="CV Screening", version="0.1.0")
+
+
+class MatchRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    cv_text: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
+    job_text: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
+
+
+@lru_cache
+def _build_client(api_key: str, model: str, cache_dir: Path) -> LLMClient:
+    inner = OpenAIClient(api_key=api_key, model=model)
+    return CachedLLMClient(inner, cache_dir, key_salt=PROMPT_VERSION)
+
+
+def get_llm_client(settings: Annotated[Settings, Depends(get_settings)]) -> LLMClient:
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured")
+    return _build_client(settings.openai_api_key, settings.llm_model, settings.cache_dir)
+
+
+LLMDep = Annotated[LLMClient, Depends(get_llm_client)]
+
+
+@app.exception_handler(ExtractionError)
+def handle_extraction_error(_request: Request, _exc: ExtractionError) -> JSONResponse:
+    return JSONResponse(status_code=502, content={"detail": "model returned invalid output"})
+
+
+@app.exception_handler(OpenAIError)
+def handle_provider_error(_request: Request, _exc: OpenAIError) -> JSONResponse:
+    return JSONResponse(status_code=502, content={"detail": "model provider error"})
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/match")
+def match(body: MatchRequest, llm: LLMDep) -> MatchResult:
+    return screen(body.cv_text, body.job_text, llm)
+
+
+@app.post("/match/pdf")
+def match_pdf(
+    cv_file: Annotated[UploadFile, File()],
+    job_text: Annotated[str, Form(min_length=1, max_length=MAX_TEXT_CHARS)],
+    llm: LLMDep,
+) -> MatchResult:
+    cv_text = _read_pdf_upload(cv_file)
+    return screen(cv_text, job_text, llm)
+
+
+def _read_pdf_upload(upload: UploadFile) -> str:
+    if not _is_pdf(upload):
+        raise HTTPException(status_code=415, detail="CV must be a PDF file")
+    data = upload.file.read(MAX_PDF_BYTES + 1)
+    if len(data) > MAX_PDF_BYTES:
+        raise HTTPException(status_code=413, detail="PDF is larger than 5 MB")
+    try:
+        return extract_pdf_text(data)
+    except NoExtractableTextError as exc:
+        raise HTTPException(status_code=422, detail="no extractable text") from exc
+    except PDFParseError as exc:
+        raise HTTPException(status_code=422, detail="invalid PDF file") from exc
+
+
+def _is_pdf(upload: UploadFile) -> bool:
+    name_ok = (upload.filename or "").lower().endswith(".pdf")
+    return name_ok or upload.content_type == "application/pdf"
