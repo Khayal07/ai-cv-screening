@@ -57,4 +57,5 @@ class MatchResult(BaseModel):
     matched_skills: list[str]
     missing_skills: list[str]
     reasons: list[str]
+    warnings: list[str] = Field(default_factory=list)
     disclaimer: str = DISCLAIMER
