@@ -26,6 +26,10 @@
       title: "This PDF could not be read",
       message: "The file may be damaged. Export it again, or paste the CV text instead.",
     },
+    notCv: {
+      title: "This does not look like a CV",
+      message: "It reads like a job posting or has no work history or education. Use the candidate's CV instead.",
+    },
     validation: {
       title: "Some input is missing or too long",
       message: "Fill in both the CV and the job description. Each can be up to 50,000 characters.",
@@ -261,6 +265,7 @@
     if (status === 422) {
       if (detail === "no extractable text") return ERRORS.noText;
       if (detail === "invalid PDF file") return ERRORS.invalidPdf;
+      if (detail === "does not look like a CV") return ERRORS.notCv;
       return ERRORS.validation;
     }
     return ERRORS[status] || {
@@ -313,7 +318,9 @@
       const { url, options } = buildRequest();
       const response = await fetch(url, { ...options, signal: controller.signal });
       const body = await readJson(response);
-      if (!response.ok) showError(describeError(response.status, body && body.detail));
+      if (!response.ok) {
+        showError(describeError(response.status, body && body.detail), body && body.reasons);
+      }
       else renderResult(body);
     } catch (error) {
       if (error.name === "AbortError") return;
@@ -343,9 +350,12 @@
     if (on) showState("state-loading");
   }
 
-  function showError(error) {
+  function showError(error, reasons) {
     $("error-title").textContent = error.title;
     $("error-message").textContent = error.message;
+    const list = Array.isArray(reasons) ? reasons.map(String) : [];
+    renderList("error-reasons", list);
+    $("error-reasons").hidden = list.length === 0;
     showState("state-error");
   }
 

@@ -153,3 +153,10 @@ def test_script_calls_both_match_endpoints_and_samples() -> None:
     js = read_static("app.js")
     for endpoint in ('"/match"', '"/match/pdf"', '"/samples"'):
         assert endpoint in js
+
+
+def test_frontend_handles_not_a_cv_with_reasons() -> None:
+    js = read_static("app.js")
+    assert '"does not look like a CV"' in js
+    assert "error-reasons" in js
+    assert 'id="error-reasons"' in read_static("index.html")

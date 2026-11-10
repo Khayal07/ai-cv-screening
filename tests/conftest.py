@@ -3,6 +3,24 @@ from typing import Any
 
 import pytest
 
+VALID_CV_TEXT = """Jordan Blake
+Backend Engineer
+
+Experience
+Backend Engineer, Example Systems (fictional), 2020 - present
+- Built REST APIs with Python and FastAPI.
+- Maintained PostgreSQL databases and Docker-based deployments.
+
+Junior Developer, Sample Labs (fictional), 2018 - 2020
+- Wrote internal tools in Python.
+
+Education
+BSc Computer Science, Example University (fictional), 2018
+
+Skills
+Python, FastAPI, PostgreSQL, Docker
+"""
+
 
 class FakeLLMClient:
     """Returns queued responses in order; never touches the network."""

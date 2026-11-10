@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings, get_settings
 from app.llm.client import LLMResponseError
 from app.main import MAX_PDF_BYTES, app, get_llm_client
-from tests.conftest import FakeLLMClient
+from tests.conftest import VALID_CV_TEXT, FakeLLMClient
 from tests.pdf_factory import image_only_pdf, text_pdf
 
 CV_JSON: dict[str, Any] = {
@@ -23,7 +23,7 @@ JOB_JSON: dict[str, Any] = {
     "education_level": "bachelor",
     "languages": ["English"],
 }
-CV_TEXT = "Jordan Blake\nBackend Engineer\nSkills: Python, FastAPI"
+CV_TEXT = VALID_CV_TEXT
 JOB_TEXT = "Backend role. Python and Kubernetes required."
 
 
@@ -69,7 +69,7 @@ def test_invalid_model_output_maps_to_502(client: TestClient, fake: FakeLLMClien
 
 
 def test_match_pdf_success(client: TestClient) -> None:
-    pdf = text_pdf(["Backend Engineer", "Skills: Python, FastAPI"])
+    pdf = text_pdf(VALID_CV_TEXT.splitlines())
     response = client.post(
         "/match/pdf",
         files={"cv_file": ("cv.pdf", pdf, "application/pdf")},

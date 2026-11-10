@@ -631,6 +631,13 @@ textarea:focus-visible {
   color: var(--bad);
 }
 
+.error-reasons {
+  display: grid;
+  gap: var(--space-1);
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
 /* Redaction strip */
 
 .redaction {

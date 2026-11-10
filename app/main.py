@@ -14,6 +14,7 @@ from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMClient
 from app.llm.openai_client import OpenAIClient
 from app.models import MatchResult
+from app.parsing.cv_check import NotACVError
 from app.parsing.pdf import NoExtractableTextError, PDFParseError, extract_pdf_text
 from app.samples import SamplesResponse, load_samples
 from app.service import screen
@@ -51,6 +52,13 @@ LLMDep = Annotated[LLMClient, Depends(get_llm_client)]
 @app.exception_handler(ExtractionError)
 def handle_extraction_error(_request: Request, _exc: ExtractionError) -> JSONResponse:
     return JSONResponse(status_code=502, content={"detail": "model returned invalid output"})
+
+
+@app.exception_handler(NotACVError)
+def handle_not_a_cv(_request: Request, exc: NotACVError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422, content={"detail": "does not look like a CV", "reasons": exc.reasons}
+    )
 
 
 @app.exception_handler(OpenAIError)

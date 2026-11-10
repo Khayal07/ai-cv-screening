@@ -7,7 +7,7 @@ def text_pdf(lines: list[str]) -> bytes:
     pdf.add_page()
     pdf.set_font("Helvetica", size=12)
     for line in lines:
-        pdf.cell(text=line, new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(text=line or " ", new_x="LMARGIN", new_y="NEXT")
     return bytes(pdf.output())
 
 
