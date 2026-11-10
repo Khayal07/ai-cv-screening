@@ -4,10 +4,189 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CV Screening</title>
+  <meta name="description" content="Compare a CV with a job description and get a score you can explain.">
+  <script>
+    try {
+      var savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      }
+    } catch (e) {}
+  </script>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
-  <main><h1>CV Screening</h1></main>
+  <a class="skip-link" href="#match-form">Skip to the form</a>
+
+  <header class="site-header">
+    <div class="brand">
+      <p class="wordmark"><span class="mark">CV</span> Screening</p>
+      <p class="tagline">Compare a CV with a job description. Get a score you can explain.</p>
+    </div>
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false"
+            aria-label="Switch to dark theme">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <span class="theme-toggle-text">Dark</span>
+    </button>
+  </header>
+
+  <main class="layout">
+    <form id="match-form" class="panel input-panel" novalidate aria-labelledby="inputs-heading">
+      <h1 id="inputs-heading" class="panel-title">Inputs</h1>
+
+      <fieldset class="field-group">
+        <legend class="field-label">Candidate CV</legend>
+
+        <div class="tabs" role="tablist" aria-label="CV input method">
+          <button type="button" role="tab" id="tab-pdf" class="tab" aria-selected="true"
+                  aria-controls="panel-pdf">Upload PDF</button>
+          <button type="button" role="tab" id="tab-text" class="tab" aria-selected="false"
+                  aria-controls="panel-text" tabindex="-1">Paste text</button>
+        </div>
+
+        <div id="panel-pdf" class="tab-panel" role="tabpanel" aria-labelledby="tab-pdf">
+          <label id="dropzone" class="dropzone" for="cv-file">
+            <input id="cv-file" class="visually-hidden" type="file" name="cv_file"
+                   accept="application/pdf,.pdf" aria-describedby="dropzone-hint">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/>
+            </svg>
+            <span class="dropzone-title">Drop a PDF here or <span class="link-like">choose a file</span></span>
+            <span id="dropzone-hint" class="hint">PDF with selectable text, up to 5 MB</span>
+          </label>
+          <div id="file-info" class="file-info" hidden>
+            <span class="file-meta">
+              <span id="file-name" class="file-name"></span>
+              <span id="file-size" class="file-size"></span>
+            </span>
+            <button type="button" id="file-remove" class="button-quiet">Remove file</button>
+          </div>
+        </div>
+
+        <div id="panel-text" class="tab-panel" role="tabpanel" aria-labelledby="tab-text" hidden>
+          <label class="visually-hidden" for="cv-text">CV text</label>
+          <textarea id="cv-text" name="cv_text" rows="12" maxlength="50000"
+                    placeholder="Paste the CV text here" aria-describedby="cv-count"></textarea>
+          <p id="cv-count" class="counter" aria-live="off">0 / 50,000</p>
+        </div>
+
+        <div class="samples" id="cv-samples-group" hidden>
+          <p class="samples-label" id="cv-samples-label">Sample CVs</p>
+          <div class="sample-list" id="cv-samples" role="group" aria-labelledby="cv-samples-label"></div>
+        </div>
+      </fieldset>
+
+      <div class="field-group">
+        <label class="field-label" for="job-text">Job description</label>
+        <textarea id="job-text" name="job_text" rows="10" maxlength="50000"
+                  placeholder="Paste the job description here" aria-describedby="job-count"></textarea>
+        <p id="job-count" class="counter" aria-live="off">0 / 50,000</p>
+
+        <div class="samples" id="job-samples-group" hidden>
+          <p class="samples-label" id="job-samples-label">Sample jobs</p>
+          <div class="sample-list" id="job-samples" role="group" aria-labelledby="job-samples-label"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="submit" class="button-primary">
+          <span class="spinner spinner-small" aria-hidden="true"></span>
+          <span class="button-label">Score match</span>
+        </button>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+      </div>
+    </form>
+
+    <section id="results-panel" class="panel results-panel" aria-labelledby="results-heading">
+      <h2 id="results-heading" class="panel-title" tabindex="-1">Result</h2>
+
+      <div id="state-empty" class="state state-empty">
+        <p class="state-title">No result yet</p>
+        <p>Add a CV and a job description, then select <strong>Score match</strong>.
+           The result shows the reason behind every point.</p>
+        <p class="redaction" aria-label="Name, age, gender and photo are removed before scoring.">
+          <span aria-hidden="true">Removed before scoring:</span>
+          <span class="redacted" aria-hidden="true">Name <span class="bar bar-l"></span></span>
+          <span class="redacted" aria-hidden="true">Age <span class="bar bar-s"></span></span>
+          <span class="redacted" aria-hidden="true">Gender <span class="bar bar-m"></span></span>
+          <span class="redacted" aria-hidden="true">Photo <span class="bar bar-m"></span></span>
+        </p>
+      </div>
+
+      <div id="state-loading" class="state state-loading" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Scoring the match…</p>
+      </div>
+
+      <div id="state-error" class="state state-error" role="alert" hidden>
+        <p id="error-title" class="state-title">Scoring failed</p>
+        <p id="error-message"></p>
+      </div>
+
+      <div id="result-region" aria-live="polite" aria-atomic="false">
+        <div id="state-results" class="results" hidden>
+          <div class="score-row">
+            <div class="gauge" id="gauge" data-range="none">
+              <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+                <circle class="gauge-track" cx="60" cy="60" r="52"/>
+                <circle class="gauge-arc" id="gauge-arc" cx="60" cy="60" r="52"/>
+              </svg>
+              <p class="gauge-value"><span id="gauge-value">0</span><span class="gauge-max">/100</span></p>
+            </div>
+            <div class="verdict">
+              <p class="verdict-title"><span id="verdict" class="mark">—</span></p>
+              <p id="summary" class="verdict-summary"></p>
+              <p class="redaction" aria-label="Name, age, gender and photo were removed before scoring.">
+                <span aria-hidden="true">Removed before scoring:</span>
+                <span class="redacted" aria-hidden="true">Name <span class="bar bar-l"></span></span>
+                <span class="redacted" aria-hidden="true">Age <span class="bar bar-s"></span></span>
+                <span class="redacted" aria-hidden="true">Gender <span class="bar bar-m"></span></span>
+                <span class="redacted" aria-hidden="true">Photo <span class="bar bar-m"></span></span>
+              </p>
+            </div>
+          </div>
+
+          <section class="result-block" aria-labelledby="breakdown-heading">
+            <h3 id="breakdown-heading" class="block-title">Score breakdown</h3>
+            <ul id="breakdown" class="breakdown"></ul>
+          </section>
+
+          <div class="skills-grid">
+            <section class="result-block" aria-labelledby="matched-heading">
+              <h3 id="matched-heading" class="block-title">Matched skills</h3>
+              <ul id="matched-skills" class="chips chips-matched"></ul>
+            </section>
+            <section class="result-block" aria-labelledby="missing-heading">
+              <h3 id="missing-heading" class="block-title">Missing required skills</h3>
+              <ul id="missing-skills" class="chips chips-missing"></ul>
+            </section>
+          </div>
+
+          <section class="result-block" aria-labelledby="reasons-heading">
+            <h3 id="reasons-heading" class="block-title">Reasons</h3>
+            <ul id="reasons" class="reasons"></ul>
+          </section>
+
+          <aside class="disclaimer" aria-labelledby="disclaimer-heading">
+            <p id="disclaimer-heading" class="disclaimer-title">Decision support only</p>
+            <p id="disclaimer"></p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>This tool returns a score and reasons. It does not make hiring decisions.
+       All sample CVs are synthetic.</p>
+  </footer>
 </body>
 </html>

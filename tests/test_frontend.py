@@ -88,3 +88,48 @@ def test_samples_missing_directory(tmp_path: Path) -> None:
 )
 def test_make_label(stem: str, prefix: str, expected: str) -> None:
     assert make_label(stem, prefix) == expected
+
+
+STATIC = Path(__file__).resolve().parent.parent / "app" / "static"
+
+
+def read_static(name: str) -> str:
+    return (STATIC / name).read_text(encoding="utf-8")
+
+
+def test_index_links_assets() -> None:
+    html = read_static("index.html")
+    assert '<link rel="stylesheet" href="/static/style.css">' in html
+    assert '<script src="/static/app.js" defer></script>' in html
+
+
+@pytest.mark.parametrize("field_id", ["cv-file", "cv-text", "job-text"])
+def test_inputs_have_labels(field_id: str) -> None:
+    assert f'for="{field_id}"' in read_static("index.html")
+
+
+@pytest.mark.parametrize(
+    "hook",
+    [
+        'role="tablist"',
+        'aria-live="polite"',
+        'role="alert"',
+        'id="theme-toggle"',
+        'id="gauge-arc"',
+        'id="breakdown"',
+        'id="matched-skills"',
+        'id="missing-skills"',
+        'id="reasons"',
+        'id="disclaimer"',
+    ],
+)
+def test_index_has_ui_hooks(hook: str) -> None:
+    assert hook in read_static("index.html")
+
+
+def test_styles_support_both_themes_and_reduced_motion() -> None:
+    css = read_static("style.css")
+    assert "prefers-color-scheme: dark" in css
+    assert ':root[data-theme="dark"]' in css
+    assert "prefers-reduced-motion" in css
+    assert ":focus-visible" in css
