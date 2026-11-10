@@ -9,6 +9,7 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 COPY app ./app
+COPY data/synthetic ./data/synthetic
 RUN pip install . \
     && useradd --create-home --uid 1000 appuser \
     && mkdir -p /app/.cache/llm \

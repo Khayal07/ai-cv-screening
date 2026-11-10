@@ -9,7 +9,8 @@
 build
 dist
 tests
-data
+data/*
+!data/synthetic
 CLAUDE.md
 .claude
 Dockerfile

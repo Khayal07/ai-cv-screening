@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from openai import OpenAIError
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,12 +15,15 @@ from app.llm.client import LLMClient
 from app.llm.openai_client import OpenAIClient
 from app.models import MatchResult
 from app.parsing.pdf import NoExtractableTextError, PDFParseError, extract_pdf_text
+from app.samples import SamplesResponse, load_samples
 from app.service import screen
 
 MAX_PDF_BYTES = 5 * 1024 * 1024
 MAX_TEXT_CHARS = 50_000
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 app = FastAPI(title="CV Screening", version="0.1.0")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 class MatchRequest(BaseModel):
@@ -54,9 +58,19 @@ def handle_provider_error(_request: Request, _exc: OpenAIError) -> JSONResponse:
     return JSONResponse(status_code=502, content={"detail": "model provider error"})
 
 
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/samples")
+def samples(settings: Annotated[Settings, Depends(get_settings)]) -> SamplesResponse:
+    return load_samples(settings.samples_dir)
 
 
 @app.post("/match")
