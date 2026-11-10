@@ -10,7 +10,7 @@ from app.parsing.overlap import (
     word_ngrams,
 )
 from app.service import screen
-from tests.conftest import VALID_CV_TEXT, FakeLLMClient
+from tests.conftest import VALID_CV_TEXT, FakeLLMClient, used
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "synthetic"
 PAIRS = list(product(sorted(DATA_DIR.glob("cv_*.txt")), sorted(DATA_DIR.glob("jd_*.txt"))))
@@ -57,7 +57,7 @@ def test_identical_text_is_full_overlap() -> None:
 
 
 CV_JSON = {
-    "skills": ["Python"],
+    "skills": used("Python"),
     "years_experience": 5,
     "education_level": "bachelor",
     "languages": ["English"],

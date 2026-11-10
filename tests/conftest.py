@@ -22,6 +22,16 @@ Python, FastAPI, PostgreSQL, Docker
 """
 
 
+def used(*names: str) -> list[dict[str, Any]]:
+    """CV skills shown in use (evidence)."""
+    return [{"name": name, "evidence": True} for name in names]
+
+
+def listed(*names: str) -> list[dict[str, Any]]:
+    """CV skills that only appear in a skills list."""
+    return [{"name": name, "evidence": False} for name in names]
+
+
 class FakeLLMClient:
     """Returns queued responses in order; never touches the network."""
 

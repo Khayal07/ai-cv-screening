@@ -7,6 +7,7 @@ from app.models import (
     EDUCATION_RANK,
     ComponentScore,
     CVProfile,
+    CVSkill,
     JobRequirements,
     MatchResult,
 )
@@ -74,10 +75,19 @@ IMPLIES: dict[str, frozenset[str]] = {
 TOKEN = re.compile(r"[^\W_]+(?:[.-][^\W_]+)*[+#]*")
 
 
+EVIDENCE_CREDIT = 1.0
+LISTED_ONLY_CREDIT = 0.5
+
+
 @dataclass(frozen=True)
 class SkillMatch:
     wanted: str
     found: str
+    evidence: bool = True
+
+    @property
+    def credit(self) -> float:
+        return EVIDENCE_CREDIT if self.evidence else LISTED_ONLY_CREDIT
 
 
 def normalize_skill(skill: str) -> str:
@@ -138,22 +148,44 @@ def split_matches(wanted: list[str], have: list[str]) -> tuple[list[str], list[s
     return [match.wanted for match in matches], missing
 
 
+def match_cv_skills(
+    wanted: list[str], cv_skills: list[CVSkill]
+) -> tuple[list[SkillMatch], list[str]]:
+    """Like match_skills, but prefer CV skills with evidence (full credit) over listed-only ones."""
+    evidenced = [skill.name for skill in cv_skills if skill.evidence]
+    listed = [skill.name for skill in cv_skills]
+    matches: list[SkillMatch] = []
+    missing: list[str] = []
+    for item in wanted:
+        if (found := find_match(item, evidenced)) is not None:
+            matches.append(SkillMatch(wanted=item, found=found, evidence=True))
+        elif (found := find_match(item, listed)) is not None:
+            matches.append(SkillMatch(wanted=item, found=found, evidence=False))
+        else:
+            missing.append(item)
+    return matches, missing
+
+
 def score_match(cv: CVProfile, job: JobRequirements) -> MatchResult:
-    req_matched, req_missing = split_matches(job.required_skills, cv.skills)
-    nice_matched, _ = split_matches(job.nice_to_have_skills, cv.skills)
+    required, req_missing = match_cv_skills(job.required_skills, cv.skills)
+    nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills)
+    languages, lang_missing = match_skills(job.languages, cv.languages)
     components = [
-        _list_component("required_skills", "Required skills", job.required_skills, cv.skills),
-        _list_component(
-            "nice_to_have_skills", "Nice-to-have skills", job.nice_to_have_skills, cv.skills
+        _matches_component(
+            "required_skills", "Required skills", job.required_skills, required, req_missing
+        ),
+        _matches_component(
+            "nice_to_have_skills", "Nice-to-have skills", job.nice_to_have_skills, nice,
+            nice_missing,
         ),
         _experience_component(cv.years_experience, job.min_years),
         _education_component(cv, job),
-        _list_component("languages", "Languages", job.languages, cv.languages),
+        _matches_component("languages", "Languages", job.languages, languages, lang_missing),
     ]
     return MatchResult(
         score=_final_score(components),
         breakdown=components,
-        matched_skills=req_matched + nice_matched,
+        matched_skills=[match.wanted for match in required + nice],
         missing_skills=req_missing,
         reasons=[component.detail for component in components],
     )
@@ -171,23 +203,28 @@ def _component(name: str, ratio: float, detail: str) -> ComponentScore:
     )
 
 
-def _list_component(name: str, label: str, wanted: list[str], have: list[str]) -> ComponentScore:
+def _matches_component(
+    name: str, label: str, wanted: list[str], matches: list[SkillMatch], missing: list[str]
+) -> ComponentScore:
     if not wanted:
         return _component(name, 1.0, f"{label}: none specified by the job.")
-    matches, missing = match_skills(wanted, have)
+    credit = sum(match.credit for match in matches)
     detail = _describe_matches(label, matches, missing, len(wanted))
-    return _component(name, len(matches) / len(wanted), detail)
+    return _component(name, credit / len(wanted), detail)
 
 
 def _describe_matches(
     label: str, matches: list[SkillMatch], missing: list[str], total: int
 ) -> str:
-    """Name the CV skill behind every match whose wording differs from the job's."""
+    """Name the CV skill behind each reworded match, and flag skills listed without evidence."""
     notes = [
         f"{match.wanted} via {match.found}"
         for match in matches
         if match.wanted.casefold() != match.found.casefold()
     ]
+    listed_only = [match.wanted for match in matches if not match.evidence]
+    if listed_only:
+        notes.append(f"listed without evidence: {', '.join(listed_only)}")
     if missing:
         notes.append(f"missing: {', '.join(missing)}")
     detail = f"{label}: {len(matches)} of {total} matched"

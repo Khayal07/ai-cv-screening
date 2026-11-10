@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 from app.llm.client import LLMClient, LLMResponseError
 from app.models import CVProfile, JobRequirements
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 MAX_ATTEMPTS = 2
 MAX_INPUT_CHARS = 12_000
 
@@ -23,13 +23,22 @@ SKILL_NAME_RULES = (
     '"Docker and Kubernetes in production" -> ["Docker", "Kubernetes"]. '
 )
 
+SKILL_EVIDENCE_RULES = (
+    'Each skill is an object {"name": string, "evidence": boolean}. '
+    '"evidence" is true only when the CV shows the skill being used in a job, project or '
+    "education entry, and false when it only appears in a skills list or summary. Examples: "
+    '"Built REST APIs with FastAPI at Acme" -> {"name": "FastAPI", "evidence": true}; '
+    '"Skills: Redis, Kafka" with no other mention -> {"name": "Redis", "evidence": false}. '
+)
+
 CV_SYSTEM_PROMPT = (
     "You extract structured professional data from a CV. "
     "Return only a JSON object with these keys: "
-    '"skills" (list of skill names), '
+    '"skills" (list of skill objects), '
     '"years_experience" (number, total years of professional work), '
     f'"education_level" (highest completed, one of: {EDUCATION_VALUES}), '
     '"languages" (list of spoken languages). '
+    f"{SKILL_EVIDENCE_RULES}"
     f"{SKILL_NAME_RULES}"
     "Ignore and never output name, age, gender, photo, nationality or contact details."
 )

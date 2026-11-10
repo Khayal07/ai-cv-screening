@@ -19,7 +19,7 @@ from app.models import EducationLevel
 from tests.conftest import FakeLLMClient
 
 VALID_CV: dict[str, Any] = {
-    "skills": ["Python", "FastAPI"],
+    "skills": [{"name": "Python", "evidence": True}, {"name": "FastAPI", "evidence": False}],
     "years_experience": 5,
     "education_level": "bachelor",
     "languages": ["English"],
@@ -35,7 +35,7 @@ VALID_JOB: dict[str, Any] = {
 
 def test_extracts_cv_profile() -> None:
     profile = extract_cv_profile("cv text", FakeLLMClient([VALID_CV]))
-    assert profile.skills == ["Python", "FastAPI"]
+    assert [(s.name, s.evidence) for s in profile.skills] == [("Python", True), ("FastAPI", False)]
     assert profile.education_level is EducationLevel.BACHELOR
 
 
@@ -74,8 +74,8 @@ def test_raises_after_retry_fails() -> None:
 def test_retry_uses_new_cache_key_so_bad_cached_output_is_bypassed(tmp_path: Path) -> None:
     fake = FakeLLMClient([{"skills": "not a list"}, VALID_CV])
     cached = CachedLLMClient(fake, tmp_path, key_salt=PROMPT_VERSION)
-    assert extract_cv_profile("cv", cached).skills == ["Python", "FastAPI"]
-    assert extract_cv_profile("cv", cached).skills == ["Python", "FastAPI"]
+    assert [s.name for s in extract_cv_profile("cv", cached).skills] == ["Python", "FastAPI"]
+    assert [s.name for s in extract_cv_profile("cv", cached).skills] == ["Python", "FastAPI"]
     assert len(fake.calls) == 2
 
 
@@ -91,7 +91,7 @@ def test_cv_prompt_excludes_personal_data() -> None:
 
 
 def test_prompt_version_is_set() -> None:
-    assert PROMPT_VERSION == "v2"
+    assert PROMPT_VERSION == "v3"
 
 
 @pytest.mark.parametrize("prompt", [CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT])
@@ -106,3 +106,10 @@ def test_prompt_version_changes_cache_key(tmp_path: Path) -> None:
     current = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=PROMPT_VERSION)
     previous = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v1")
     assert current.cache_key(CV_SYSTEM_PROMPT, "cv") != previous.cache_key(CV_SYSTEM_PROMPT, "cv")
+
+
+def test_cv_prompt_asks_for_skill_evidence() -> None:
+    assert '"evidence"' in CV_SYSTEM_PROMPT
+    assert '{"name": "FastAPI", "evidence": true}' in CV_SYSTEM_PROMPT
+    assert '{"name": "Redis", "evidence": false}' in CV_SYSTEM_PROMPT
+    assert '"evidence"' not in JOB_SYSTEM_PROMPT

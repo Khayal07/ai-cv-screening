@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from app.main import app, get_llm_client
 from app.parsing.anonymize import strip_personal_data
 from app.service import screen
-from tests.conftest import FakeLLMClient
+from tests.conftest import FakeLLMClient, used
 from tests.pdf_factory import text_pdf
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "synthetic"
@@ -23,16 +23,16 @@ PERSONAL_MARKERS: dict[str, list[str]] = {
 
 CANNED_CVS: dict[str, dict[str, Any]] = {
     "cv_backend_senior.txt": {
-        "skills": ["Python", "FastAPI", "Django", "PostgreSQL", "Redis", "Docker",
-                   "Kubernetes", "AWS", "CI/CD"],
+        "skills": used("Python", "FastAPI", "Django", "PostgreSQL", "Redis", "Docker",
+                       "Kubernetes", "AWS", "CI/CD"),
         "years_experience": 7, "education_level": "bachelor", "languages": ["English", "German"],
     },
     "cv_frontend_mid.txt": {
-        "skills": ["React", "TypeScript", "JavaScript", "HTML", "CSS", "Node.js", "Git"],
+        "skills": used("React", "TypeScript", "JavaScript", "HTML", "CSS", "Node.js", "Git"),
         "years_experience": 4, "education_level": "bachelor", "languages": ["English"],
     },
     "cv_career_changer.txt": {
-        "skills": ["JavaScript", "HTML", "CSS", "Python", "Git"],
+        "skills": used("JavaScript", "HTML", "CSS", "Python", "Git"),
         "years_experience": 0.5, "education_level": "master", "languages": ["English", "French"],
     },
 }

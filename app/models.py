@@ -1,6 +1,7 @@
 from enum import StrEnum
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class EducationLevel(StrEnum):
@@ -16,15 +17,32 @@ EDUCATION_RANK: dict[EducationLevel, int] = {
 }
 
 
+class CVSkill(BaseModel):
+    """A skill plus whether the CV shows it in use (job, project, education)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    name: str = Field(min_length=1)
+    evidence: bool = False
+
+
 class CVProfile(BaseModel):
     """Professional data only. There are deliberately no personal fields."""
 
     model_config = ConfigDict(extra="ignore")
 
-    skills: list[str] = Field(default_factory=list)
+    skills: list[CVSkill] = Field(default_factory=list)
     years_experience: float = Field(ge=0, le=60)
     education_level: EducationLevel = EducationLevel.NONE
     languages: list[str] = Field(default_factory=list)
+
+    @field_validator("skills", mode="before")
+    @classmethod
+    def plain_names_have_no_evidence(cls, value: Any) -> Any:
+        """A bare skill name proves nothing, so it counts as listed only."""
+        if not isinstance(value, list):
+            return value
+        return [{"name": item, "evidence": False} if isinstance(item, str) else item for item in value]
 
 
 class JobRequirements(BaseModel):

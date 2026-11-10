@@ -7,11 +7,11 @@ from fastapi.testclient import TestClient
 from app.config import Settings, get_settings
 from app.llm.client import LLMResponseError
 from app.main import MAX_PDF_BYTES, app, get_llm_client
-from tests.conftest import VALID_CV_TEXT, FakeLLMClient
+from tests.conftest import VALID_CV_TEXT, FakeLLMClient, used
 from tests.pdf_factory import image_only_pdf, text_pdf
 
 CV_JSON: dict[str, Any] = {
-    "skills": ["Python", "FastAPI"],
+    "skills": used("Python", "FastAPI"),
     "years_experience": 4,
     "education_level": "bachelor",
     "languages": ["English"],

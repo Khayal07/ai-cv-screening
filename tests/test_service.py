@@ -2,9 +2,9 @@ import pytest
 
 from app.parsing.cv_check import NotACVError
 from app.service import screen
-from tests.conftest import VALID_CV_TEXT, FakeLLMClient
+from tests.conftest import VALID_CV_TEXT, FakeLLMClient, used
 
-CV_JSON = {"skills": ["Go"], "years_experience": 2, "education_level": "master", "languages": []}
+CV_JSON = {"skills": used("Go"), "years_experience": 2, "education_level": "master", "languages": []}
 JOB_JSON = {"required_skills": ["Go"], "min_years": 2, "education_level": "bachelor"}
 
 

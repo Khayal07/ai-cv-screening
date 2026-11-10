@@ -2,13 +2,15 @@ from typing import Any
 
 import pytest
 
-from app.models import DISCLAIMER, CVProfile, EducationLevel, JobRequirements
+from app.models import DISCLAIMER, CVProfile, CVSkill, EducationLevel, JobRequirements
+from tests.conftest import listed, used
 from app.scoring import (
     IMPLIES,
     SKILL_ALIASES,
     WEIGHTS,
     SkillMatch,
     implies,
+    match_cv_skills,
     match_skills,
     normalize_skill,
     score_match,
@@ -19,8 +21,13 @@ from app.scoring import (
 
 
 def make_cv(**overrides: Any) -> CVProfile:
+    """Plain skill names in tests mean skills shown in use (evidence=True)."""
+    if "skills" in overrides:
+        overrides["skills"] = [
+            {"name": s, "evidence": True} if isinstance(s, str) else s for s in overrides["skills"]
+        ]
     data: dict[str, Any] = {
-        "skills": ["Python", "FastAPI", "Docker", "PostgreSQL"],
+        "skills": used("Python", "FastAPI", "Docker", "PostgreSQL"),
         "years_experience": 5,
         "education_level": "bachelor",
         "languages": ["English"],
@@ -300,3 +307,54 @@ def test_reason_shows_implied_match() -> None:
 def test_exact_match_preferred_over_implication() -> None:
     matches, _ = match_skills(["Python"], ["FastAPI", "Python"])
     assert matches == [SkillMatch(wanted="Python", found="Python")]
+
+
+# ---------- Evidence weighting ----------
+
+
+def test_listed_only_skill_gets_half_credit() -> None:
+    job = make_job(required_skills=["Python", "Docker"], nice_to_have_skills=[])
+    cv = make_cv(skills=used("Python") + listed("Docker"))
+    required = score_match(cv, job).breakdown[0]
+    assert required.ratio == pytest.approx(0.75)
+    assert required.points == pytest.approx(37.5)
+
+
+def test_all_listed_scores_half_of_all_used() -> None:
+    job = make_job(required_skills=["Python", "Docker"], nice_to_have_skills=["Redis"])
+    full = score_match(make_cv(skills=used("Python", "Docker", "Redis")), job).breakdown
+    half = score_match(make_cv(skills=listed("Python", "Docker", "Redis")), job).breakdown
+    assert half[0].points == pytest.approx(full[0].points / 2)
+    assert half[1].points == pytest.approx(full[1].points / 2)
+
+
+def test_evidenced_implied_skill_beats_listed_exact_skill() -> None:
+    cv_skills = [CVSkill(name="Python"), CVSkill(name="FastAPI", evidence=True)]
+    matches, missing = match_cv_skills(["Python"], cv_skills)
+    assert matches == [SkillMatch(wanted="Python", found="FastAPI", evidence=True)]
+    assert missing == []
+
+
+def test_listed_exact_skill_used_when_nothing_has_evidence() -> None:
+    matches, _ = match_cv_skills(["Python"], [CVSkill(name="Python"), CVSkill(name="Go")])
+    assert matches == [SkillMatch(wanted="Python", found="Python", evidence=False)]
+
+
+def test_reason_names_skills_listed_without_evidence() -> None:
+    cv = make_cv(skills=used("PostgreSQL", "Python") + listed("Redis"))
+    job = make_job(required_skills=["SQL", "Python", "Redis", "Rust"])
+    assert score_match(cv, job).reasons[0] == (
+        "Required skills: 3 of 4 matched "
+        "(SQL via PostgreSQL; listed without evidence: Redis; missing: Rust)."
+    )
+
+
+def test_listed_skills_still_count_as_matched_not_missing() -> None:
+    result = score_match(make_cv(skills=listed("Python")), make_job(required_skills=["Python"]))
+    assert result.matched_skills[0] == "Python"
+    assert "Python" not in result.missing_skills
+
+
+def test_plain_skill_names_from_model_have_no_evidence() -> None:
+    profile = CVProfile(skills=["Python", {"name": "Go", "evidence": True}], years_experience=1)
+    assert [(s.name, s.evidence) for s in profile.skills] == [("Python", False), ("Go", True)]
