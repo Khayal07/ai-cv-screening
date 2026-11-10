@@ -26,13 +26,23 @@ class CVSkill(BaseModel):
     evidence: bool = False
 
 
+class Role(BaseModel):
+    """A professional role: dates as "YYYY-MM", "YYYY" or "present", plus skills used in it."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    start: str
+    end: str
+    skills: list[str] = Field(default_factory=list)
+
+
 class CVProfile(BaseModel):
     """Professional data only. There are deliberately no personal fields."""
 
     model_config = ConfigDict(extra="ignore")
 
     skills: list[CVSkill] = Field(default_factory=list)
-    years_experience: float = Field(ge=0, le=60)
+    roles: list[Role] = Field(default_factory=list)
     education_level: EducationLevel = EducationLevel.NONE
     languages: list[str] = Field(default_factory=list)
 

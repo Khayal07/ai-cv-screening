@@ -35,7 +35,10 @@ CV_SYSTEM_PROMPT = (
     "You extract structured professional data from a CV. "
     "Return only a JSON object with these keys: "
     '"skills" (list of skill objects), '
-    '"years_experience" (number, total years of professional work), '
+    '"roles" (list of professional roles: jobs, internships, freelance work; not education. '
+    'Each role is {"start": "YYYY-MM" or "YYYY", "end": "YYYY-MM", "YYYY" or "present", '
+    '"skills": list of skill names used in that role}. Use an empty skills list if none are '
+    "named for that role), "
     f'"education_level" (highest completed, one of: {EDUCATION_VALUES}), '
     '"languages" (list of spoken languages). '
     f"{SKILL_EVIDENCE_RULES}"

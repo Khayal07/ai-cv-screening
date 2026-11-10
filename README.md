@@ -20,7 +20,7 @@ Job description ─────────────────────�
 
 1. **Parsing.** PDFs are read with `pypdf` as text only, so embedded images such as photos are never processed.
 2. **Anonymization.** Before any text leaves the service, `app/parsing/anonymize.py` removes the name, date of birth and age, gender, pronouns, photo references, marital and family details, nationality, and contact details (email, phone, URLs).
-3. **Extraction.** A language model (OpenAI API, model set by `LLM_MODEL`) turns the CV and the job description into structured data: skills, years of experience, education level and languages. The schemas contain no personal fields. Output is validated with Pydantic; invalid output is retried once.
+3. **Extraction.** A language model (OpenAI API, model set by `LLM_MODEL`) turns the CV and the job description into structured data: skills, dated roles with the skills used in each, education level and languages. Years of experience are computed from the role dates in plain Python, not read by the model. The schemas contain no personal fields. Output is validated with Pydantic; invalid output is retried once.
 4. **Scoring.** Plain Python, with no model involved, so the score is reproducible and unit-tested:
 
 | Component           | Weight | Rule                                             |

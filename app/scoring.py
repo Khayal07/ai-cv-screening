@@ -2,7 +2,9 @@
 
 import re
 from dataclasses import dataclass
+from datetime import date
 
+from app.experience import Interval, role_interval, total_years
 from app.models import (
     EDUCATION_RANK,
     ComponentScore,
@@ -10,6 +12,7 @@ from app.models import (
     CVSkill,
     JobRequirements,
     MatchResult,
+    Role,
 )
 
 WEIGHTS: dict[str, float] = {
@@ -166,7 +169,55 @@ def match_cv_skills(
     return matches, missing
 
 
-def score_match(cv: CVProfile, job: JobRequirements) -> MatchResult:
+@dataclass(frozen=True)
+class ExperienceSummary:
+    relevant_years: float
+    total_years: float
+    warnings: list[str]
+
+
+def is_relevant_role(role: Role, job_skills: list[str]) -> bool:
+    """A role counts if it used at least one job skill (same token and implication rules)."""
+    return any(find_match(skill, role.skills) is not None for skill in job_skills)
+
+
+def summarize_experience(roles: list[Role], job_skills: list[str], today: date) -> ExperienceSummary:
+    """Relevant years come from roles that used a job skill; if the job names none, all count."""
+    dated: list[tuple[Role, Interval]] = []
+    unreadable = 0
+    for role in roles:
+        interval = role_interval(role.start, role.end, today)
+        if interval is None:
+            unreadable += 1
+        else:
+            dated.append((role, interval))
+    if not job_skills:
+        relevant = [interval for _, interval in dated]
+        no_skills = 0
+    else:
+        relevant = [interval for role, interval in dated if is_relevant_role(role, job_skills)]
+        no_skills = sum(1 for role, _ in dated if not role.skills)
+    return ExperienceSummary(
+        relevant_years=total_years(relevant),
+        total_years=total_years([interval for _, interval in dated]),
+        warnings=_experience_warnings(unreadable, no_skills),
+    )
+
+
+def _experience_warnings(unreadable: int, no_skills: int) -> list[str]:
+    warnings: list[str] = []
+    if no_skills:
+        warnings.append(
+            f"{no_skills} role(s) have no listed skills and were not counted as relevant experience."
+        )
+    if unreadable:
+        warnings.append(f"{unreadable} role(s) have unreadable dates and were ignored.")
+    return warnings
+
+
+def score_match(cv: CVProfile, job: JobRequirements, today: date | None = None) -> MatchResult:
+    job_skills = job.required_skills + job.nice_to_have_skills
+    experience = summarize_experience(cv.roles, job_skills, today or date.today())
     required, req_missing = match_cv_skills(job.required_skills, cv.skills)
     nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills)
     languages, lang_missing = match_skills(job.languages, cv.languages)
@@ -178,7 +229,7 @@ def score_match(cv: CVProfile, job: JobRequirements) -> MatchResult:
             "nice_to_have_skills", "Nice-to-have skills", job.nice_to_have_skills, nice,
             nice_missing,
         ),
-        _experience_component(cv.years_experience, job.min_years),
+        _experience_component(experience, job.min_years),
         _education_component(cv, job),
         _matches_component("languages", "Languages", job.languages, languages, lang_missing),
     ]
@@ -188,6 +239,7 @@ def score_match(cv: CVProfile, job: JobRequirements) -> MatchResult:
         matched_skills=[match.wanted for match in required + nice],
         missing_skills=req_missing,
         reasons=[component.detail for component in components],
+        warnings=experience.warnings,
     )
 
 
@@ -231,13 +283,13 @@ def _describe_matches(
     return f"{detail} ({'; '.join(notes)})." if notes else f"{detail}."
 
 
-def _experience_component(years: float, min_years: float) -> ComponentScore:
+def _experience_component(experience: ExperienceSummary, min_years: float) -> ComponentScore:
+    relevant, total = experience.relevant_years, experience.total_years
+    summary = f"Experience: {relevant:.1f} relevant years of {total:.1f} total"
     if min_years <= 0:
-        return _component("experience", 1.0, f"Experience: {years:g} years; no minimum stated.")
-    ratio = min(years / min_years, 1.0)
-    verdict = "meets" if ratio >= 1.0 else "is below"
-    detail = f"Experience: {years:g} years {verdict} the {min_years:g} years required."
-    return _component("experience", ratio, detail)
+        return _component("experience", 1.0, f"{summary} (no minimum stated).")
+    ratio = min(relevant / min_years, 1.0)
+    return _component("experience", ratio, f"{summary} (required {min_years:g}).")
 
 
 def _education_component(cv: CVProfile, job: JobRequirements) -> ComponentScore:

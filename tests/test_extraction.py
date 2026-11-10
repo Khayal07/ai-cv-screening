@@ -16,11 +16,11 @@ from app.extraction import (
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMResponseError
 from app.models import EducationLevel
-from tests.conftest import FakeLLMClient
+from tests.conftest import FakeLLMClient, role
 
 VALID_CV: dict[str, Any] = {
     "skills": [{"name": "Python", "evidence": True}, {"name": "FastAPI", "evidence": False}],
-    "years_experience": 5,
+    "roles": [role(5, "Python")],
     "education_level": "bachelor",
     "languages": ["English"],
 }
@@ -53,14 +53,14 @@ def test_extra_keys_are_ignored() -> None:
 def test_retry_succeeds_after_malformed_json() -> None:
     fake = FakeLLMClient([LLMResponseError("bad json"), VALID_CV])
     profile = extract_cv_profile("cv", fake)
-    assert profile.years_experience == 5
+    assert profile.roles[0].skills == ["Python"]
     assert len(fake.calls) == 2
     assert fake.calls[1][1].endswith(RETRY_NOTE)
 
 
 def test_retry_succeeds_after_validation_error() -> None:
-    fake = FakeLLMClient([{**VALID_CV, "years_experience": "many"}, VALID_CV])
-    assert extract_cv_profile("cv", fake).years_experience == 5
+    fake = FakeLLMClient([{**VALID_CV, "roles": "not a list"}, VALID_CV])
+    assert len(extract_cv_profile("cv", fake).roles) == 1
     assert len(fake.calls) == 2
 
 

@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from app.main import app, get_llm_client
 from app.parsing.anonymize import strip_personal_data
 from app.service import screen
-from tests.conftest import FakeLLMClient, used
+from tests.conftest import FakeLLMClient, role, used
 from tests.pdf_factory import text_pdf
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "synthetic"
@@ -25,15 +25,19 @@ CANNED_CVS: dict[str, dict[str, Any]] = {
     "cv_backend_senior.txt": {
         "skills": used("Python", "FastAPI", "Django", "PostgreSQL", "Redis", "Docker",
                        "Kubernetes", "AWS", "CI/CD"),
-        "years_experience": 7, "education_level": "bachelor", "languages": ["English", "German"],
+        "roles": [role(3, "Python", "Django", "Docker", "CI/CD", end="2020-06"),
+                  role(4, "Python", "FastAPI", "PostgreSQL", "Kubernetes", "AWS")],
+        "education_level": "bachelor", "languages": ["English", "German"],
     },
     "cv_frontend_mid.txt": {
         "skills": used("React", "TypeScript", "JavaScript", "HTML", "CSS", "Node.js", "Git"),
-        "years_experience": 4, "education_level": "bachelor", "languages": ["English"],
+        "roles": [role(4, "React", "TypeScript", "Node.js")],
+        "education_level": "bachelor", "languages": ["English"],
     },
     "cv_career_changer.txt": {
         "skills": used("JavaScript", "HTML", "CSS", "Python", "Git"),
-        "years_experience": 0.5, "education_level": "master", "languages": ["English", "French"],
+        "roles": [role(12, "Teaching", end="2023-06"), role(0.5, "JavaScript", "HTML", "Python")],
+        "education_level": "master", "languages": ["English", "French"],
     },
 }
 

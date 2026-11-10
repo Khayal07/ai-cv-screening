@@ -1,9 +1,10 @@
+from datetime import date
 from typing import Any
 
 import pytest
 
 from app.models import DISCLAIMER, CVProfile, CVSkill, EducationLevel, JobRequirements
-from tests.conftest import listed, used
+from tests.conftest import listed, role, used
 from app.scoring import (
     IMPLIES,
     SKILL_ALIASES,
@@ -21,18 +22,26 @@ from app.scoring import (
 
 
 def make_cv(**overrides: Any) -> CVProfile:
-    """Plain skill names in tests mean skills shown in use (evidence=True)."""
+    """Plain skill names in tests mean skills shown in use (evidence=True).
+
+    `years_experience=N` is shorthand for one role of N years that used the CV's skills.
+    """
     if "skills" in overrides:
         overrides["skills"] = [
             {"name": s, "evidence": True} if isinstance(s, str) else s for s in overrides["skills"]
         ]
     data: dict[str, Any] = {
         "skills": used("Python", "FastAPI", "Docker", "PostgreSQL"),
-        "years_experience": 5,
+        "roles": [role(5, "Python", "FastAPI", "Docker", "PostgreSQL")],
         "education_level": "bachelor",
         "languages": ["English"],
     }
-    return CVProfile(**{**data, **overrides})
+    data.update(overrides)
+    if "years_experience" in data:
+        years = data.pop("years_experience")
+        names = [skill["name"] for skill in data["skills"]]
+        data["roles"] = [role(years, *names)] if years else []
+    return CVProfile(**data)
 
 
 def make_job(**overrides: Any) -> JobRequirements:
@@ -356,5 +365,93 @@ def test_listed_skills_still_count_as_matched_not_missing() -> None:
 
 
 def test_plain_skill_names_from_model_have_no_evidence() -> None:
-    profile = CVProfile(skills=["Python", {"name": "Go", "evidence": True}], years_experience=1)
+    profile = CVProfile(skills=["Python", {"name": "Go", "evidence": True}])
     assert [(s.name, s.evidence) for s in profile.skills] == [("Python", False), ("Go", True)]
+
+
+# --- Experience from dated roles ---
+
+TODAY = date(2026, 11, 10)
+
+
+def experience_detail(cv: CVProfile, job: JobRequirements) -> str:
+    return component(score_match(cv, job, today=TODAY), "experience").detail
+
+
+def test_experience_counts_only_roles_with_job_skills() -> None:
+    cv = make_cv(roles=[role(3.5, "Python", "FastAPI"), role(1.5, "Teaching", end="2020-07")])
+    result = score_match(cv, make_job(min_years=4), today=TODAY)
+    experience = component(result, "experience")
+    assert experience.detail == "Experience: 3.5 relevant years of 5.0 total (required 4)."
+    assert experience.ratio == pytest.approx(3.5 / 4)
+
+
+def test_teacher_role_is_not_relevant_for_backend_job() -> None:
+    cv = make_cv(roles=[role(10, "Teaching", "Classroom management")])
+    detail = experience_detail(cv, make_job(min_years=4))
+    assert detail == "Experience: 0.0 relevant years of 10.0 total (required 4)."
+
+
+def test_role_counts_through_implication() -> None:
+    cv = make_cv(roles=[role(4, "Django")])
+    detail = experience_detail(cv, make_job(required_skills=["Python"], nice_to_have_skills=[]))
+    assert detail.startswith("Experience: 4.0 relevant years")
+
+
+def test_role_counts_through_token_match() -> None:
+    cv = make_cv(roles=[role(2, "SQL query tuning")])
+    detail = experience_detail(cv, make_job(required_skills=["SQL"], nice_to_have_skills=[]))
+    assert detail.startswith("Experience: 2.0 relevant years")
+
+
+def test_role_does_not_count_through_substring() -> None:
+    cv = make_cv(roles=[role(2, "JavaScript")])
+    detail = experience_detail(cv, make_job(required_skills=["Java"], nice_to_have_skills=[]))
+    assert detail.startswith("Experience: 0.0 relevant years of 2.0 total")
+
+
+def test_parallel_relevant_roles_are_not_double_counted() -> None:
+    cv = make_cv(roles=[role(3, "Python"), role(2, "FastAPI")])
+    assert experience_detail(cv, make_job()).startswith("Experience: 3.0 relevant years of 3.0")
+
+
+def test_no_minimum_years_reason() -> None:
+    detail = experience_detail(make_cv(roles=[role(2, "Python")]), make_job(min_years=0))
+    assert detail == "Experience: 2.0 relevant years of 2.0 total (no minimum stated)."
+
+
+def test_role_without_skills_is_not_counted_and_warns() -> None:
+    cv = make_cv(roles=[role(2, "Python"), role(3, end="2021-01")])
+    result = score_match(cv, make_job(), today=TODAY)
+    assert component(result, "experience").detail.startswith(
+        "Experience: 2.0 relevant years of 5.0 total"
+    )
+    assert result.warnings == [
+        "1 role(s) have no listed skills and were not counted as relevant experience."
+    ]
+
+
+def test_unreadable_dates_are_ignored_and_warn() -> None:
+    cv = make_cv(roles=[role(2, "Python"), {"start": "a while ago", "end": "present", "skills": ["Python"]}])
+    result = score_match(cv, make_job(), today=TODAY)
+    assert component(result, "experience").detail.startswith("Experience: 2.0 relevant years of 2.0")
+    assert result.warnings == ["1 role(s) have unreadable dates and were ignored."]
+
+
+def test_present_role_runs_until_today() -> None:
+    cv = make_cv(roles=[{"start": "2022-11", "end": "present", "skills": ["Python"]}])
+    assert experience_detail(cv, make_job()).startswith("Experience: 4.0 relevant years")
+
+
+def test_job_without_skills_counts_every_dated_role() -> None:
+    cv = make_cv(roles=[role(3, "Teaching"), role(1, end="2020-01")])
+    result = score_match(cv, JobRequirements(min_years=2), today=TODAY)
+    assert component(result, "experience").ratio == 1.0
+    assert result.warnings == []
+
+
+def test_no_roles_gives_zero_experience_points() -> None:
+    result = score_match(make_cv(roles=[]), make_job(min_years=3), today=TODAY)
+    experience = component(result, "experience")
+    assert experience.points == 0
+    assert experience.detail == "Experience: 0.0 relevant years of 0.0 total (required 3)."

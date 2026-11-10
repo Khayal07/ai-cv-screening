@@ -32,6 +32,13 @@ def listed(*names: str) -> list[dict[str, Any]]:
     return [{"name": name, "evidence": False} for name in names]
 
 
+def role(years: float, *skills: str, end: str = "2024-01") -> dict[str, Any]:
+    """A role lasting `years` that ends at `end` (YYYY-MM) and used `skills`."""
+    end_year, end_month = (int(part) for part in end.split("-"))
+    start = end_year * 12 + (end_month - 1) - round(years * 12)
+    return {"start": f"{start // 12}-{start % 12 + 1:02d}", "end": end, "skills": list(skills)}
+
+
 class FakeLLMClient:
     """Returns queued responses in order; never touches the network."""
 
