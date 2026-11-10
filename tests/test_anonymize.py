@@ -85,6 +85,28 @@ def test_removes_contact_details() -> None:
     assert "jordanblake" not in result
 
 
+def test_removes_marital_and_family_details() -> None:
+    result = strip_personal_data("Profile\nAged 38, married, two children.\nSkills: Go")
+    assert "married" not in result
+    assert "children" not in result
+    assert result == "Profile\nSkills: Go"
+
+
+@pytest.mark.parametrize("line", ["Marital status: single", "Nationality: Examplestan"])
+def test_removes_marital_status_and_nationality_lines(line: str) -> None:
+    assert strip_personal_data(f"Profile\n{line}\nSkills: Go") == "Profile\nSkills: Go"
+
+
+def test_drops_label_left_empty_after_removal() -> None:
+    text = "Profile\nContact: someone@example.com | www.someone.example\nSkills: Go"
+    assert strip_personal_data(text) == "Profile\nSkills: Go"
+
+
+def test_keeps_single_as_professional_word() -> None:
+    text = "Experience\nBuilt a single sign-on service."
+    assert strip_personal_data(text) == text
+
+
 def test_keeps_date_ranges() -> None:
     result = strip_personal_data("Experience\nAcme Corp 2015 - 2019")
     assert "2015 - 2019" in result

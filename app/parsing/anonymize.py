@@ -7,9 +7,15 @@ import re
 
 LABELLED_LINE = re.compile(
     r"^\s*(full\s+name|name|date\s+of\s+birth|birth\s*date|d\.?o\.?b\.?|age|gender|sex|"
-    r"pronouns|photo|picture|email|e-mail|phone|mobile|tel|address)\s*[:\-]",
+    r"pronouns|photo|picture|email|e-mail|phone|mobile|tel|address|marital\s+status|"
+    r"nationality)\s*[:\-]",
     re.IGNORECASE,
 )
+FAMILY = re.compile(
+    r"\b(married|divorced|widowed)\b|\b(no|one|two|three|four|five|\d+)\s+(children|kids)\b",
+    re.IGNORECASE,
+)
+LABEL_PREFIX = re.compile(r"^\s*[\w\s]+:")
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 URL = re.compile(r"(https?://\S+|www\.\S+|\b(linkedin|github)\.com/\S+)", re.IGNORECASE)
 PHONE_CANDIDATE = re.compile(r"\+?\(?\d[\d\s().-]{7,}\d")
@@ -30,8 +36,8 @@ JOB_TITLE_WORDS = {
 def strip_personal_data(text: str) -> str:
     lines = [line for line in text.splitlines() if not LABELLED_LINE.match(line)]
     lines = _drop_name_header(lines)
-    cleaned = "\n".join(_clean_line(line) for line in lines)
-    return _collapse_blank_lines(cleaned).strip()
+    kept = [cleaned for line in lines if (cleaned := _clean_line(line)) is not None]
+    return _collapse_blank_lines("\n".join(kept)).strip()
 
 
 def looks_like_name(line: str) -> bool:
@@ -57,11 +63,20 @@ def _drop_name_header(lines: list[str]) -> list[str]:
     return lines
 
 
-def _clean_line(line: str) -> str:
-    for pattern in (EMAIL, URL, AGE, TITLE_WITH_NAME, PRONOUNS):
-        line = pattern.sub("", line)
-    line = PHONE_CANDIDATE.sub(_redact_phone, line)
-    return line.rstrip()
+def _clean_line(line: str) -> str | None:
+    """Return the cleaned line, or None if only residue is left after removal."""
+    cleaned = line
+    for pattern in (EMAIL, URL, AGE, TITLE_WITH_NAME, PRONOUNS, FAMILY):
+        cleaned = pattern.sub("", cleaned)
+    cleaned = PHONE_CANDIDATE.sub(_redact_phone, cleaned).rstrip()
+    if cleaned != line.rstrip() and _is_residue(cleaned):
+        return None
+    return cleaned
+
+
+def _is_residue(line: str) -> bool:
+    """True when a line has no words left apart from an optional 'Label:' prefix."""
+    return re.search(r"\w", LABEL_PREFIX.sub("", line)) is None
 
 
 def _redact_phone(match: re.Match[str]) -> str:
