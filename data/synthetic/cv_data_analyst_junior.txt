@@ -1,0 +1,22 @@
+Curriculum Vitae
+Full name: Sam Okonkwo-Reyes
+DOB: 14/02/2001
+Pronouns: they/them
+Phone: +44 7700 900123
+
+About
+Junior data analyst with 1 year of experience turning raw data into reports.
+
+Experience
+Data Analyst Intern, Brightside Insurance (fictional), 2023 - 2024
+- Wrote SQL queries and built weekly dashboards in Tableau.
+- Automated Excel reports with Python and pandas.
+
+Skills
+SQL, Excel, Tableau, Python, pandas, Statistics
+
+Education
+BSc Economics, Hillcrest University (fictional), 2023
+
+Languages
+English, Spanish

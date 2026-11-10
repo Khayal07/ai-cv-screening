@@ -1,0 +1,25 @@
+Frontend Developer
+Name: Casey Marlowe
+Age: 29
+Gender: Male
+Contact: casey.marlowe@example.org | www.caseymarlowe.example
+
+Summary
+Frontend developer with 4 years of experience building accessible web apps.
+
+Experience
+Frontend Developer, Pixel Harbor (fictional), 2021 - present
+- Built a design system in React and TypeScript used by 6 product teams.
+- Wrote small Node.js services for server-side rendering.
+
+Junior Web Developer, Greenleaf Media (fictional), 2020 - 2021
+- Maintained marketing sites with JavaScript, HTML and CSS.
+
+Skills
+React, TypeScript, JavaScript, HTML, CSS, Node.js, Jest, Git
+
+Education
+BSc Information Systems, Riverside College (fictional), 2020
+
+Languages
+English

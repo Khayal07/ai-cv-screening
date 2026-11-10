@@ -1,0 +1,24 @@
+Mr. Dana Whitfield
+Aged 38, married, two children.
+Photo: see attached headshot
+
+Profile
+Former secondary school teacher moving into software development after a
+12-week bootcamp. 6 months of freelance web development.
+
+Experience
+Freelance Web Developer, 2024 - present
+- Built small websites for local businesses with JavaScript and HTML.
+- Wrote Python scripts to automate spreadsheet tasks.
+
+Mathematics Teacher, Oakridge School (fictional), 2012 - 2024
+
+Skills
+JavaScript, HTML, CSS, Python (basic), Git, Teaching, Communication
+
+Education
+MA Education, Northgate University (fictional), 2012
+Full-stack Web Development Bootcamp, 2024
+
+Languages
+English, French

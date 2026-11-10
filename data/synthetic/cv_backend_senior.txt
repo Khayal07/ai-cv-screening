@@ -1,0 +1,28 @@
+Riley Thornquist
+Date of birth: 1989-04-12
+Gender: Female
+Photo: attached
+Email: riley.thornquist@example.com
+Phone: +1 (555) 010-2233
+
+Profile
+Backend engineer with 7 years of experience building APIs and data services.
+
+Experience
+Senior Backend Engineer, Northwind Logistics (fictional), 2020 - present
+- Designed REST APIs with Python and FastAPI serving 2M requests per day.
+- Migrated services to Kubernetes on AWS; cut deployment time by 60%.
+- Owned PostgreSQL schema design and query tuning.
+
+Backend Developer, Bluefin Retail (fictional), 2017 - 2020
+- Built order processing services in Python and Django.
+- Introduced Docker-based local development and CI/CD pipelines.
+
+Skills
+Python, FastAPI, Django, PostgreSQL, Redis, Docker, Kubernetes, AWS, CI/CD, REST APIs
+
+Education
+BSc Computer Science, Lakeview University (fictional), 2017
+
+Languages
+English (fluent), German (intermediate)

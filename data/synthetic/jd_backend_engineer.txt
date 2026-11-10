@@ -1,0 +1,17 @@
+Backend Engineer (Python)
+
+We are looking for a backend engineer to build and run our order and
+inventory APIs.
+
+Requirements
+- 4+ years of professional backend development
+- Strong Python and FastAPI (or similar framework)
+- PostgreSQL and SQL query optimisation
+- Docker and Kubernetes in production
+- Bachelor's degree in Computer Science or a related field
+- Fluent English
+
+Nice to have
+- AWS
+- Redis
+- CI/CD pipeline experience
