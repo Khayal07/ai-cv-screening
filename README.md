@@ -6,6 +6,10 @@ A FastAPI service that compares a CV with a job description and returns an
 > The service does **not** make hiring decisions. It returns a score and reasons only,
 > as decision support for a human reviewer.
 
+![Web interface showing a match score of 90 with breakdown bars, matched and missing skills, reasons and the disclaimer](docs/screenshot.png)
+
+*Web interface with a synthetic CV and job description. The screenshot was taken with a stubbed model client.*
+
 ## How it works
 
 ```
@@ -66,7 +70,40 @@ cp .env.example .env               # then set OPENAI_API_KEY
 uvicorn app.main:app --reload
 ```
 
-Interactive docs: http://127.0.0.1:8000/docs
+- Web interface: http://127.0.0.1:8000
+- Interactive API docs: http://127.0.0.1:8000/docs
+
+## Web interface
+
+The page is plain HTML, CSS and JavaScript served by the same FastAPI app (`app/static/`).
+There is no build step and it makes no external requests.
+
+1. Open http://127.0.0.1:8000.
+2. Add the CV in one of two ways:
+   - **Upload PDF**: drop a PDF on the upload area or choose a file (text-based PDF, up to 5 MB).
+   - **Paste text**: paste the CV text.
+3. Paste the job description.
+   To try it quickly, select one of the **Sample CVs** and **Sample jobs**. They are loaded from `data/synthetic/` through `GET /samples`.
+4. Select **Score match**.
+
+The result panel shows:
+
+- a score gauge from 0 to 100: green for 70 and above, amber for 40–69, red below 40
+- one bar per scoring component, with points earned out of the component weight
+- matched skills (green) and missing required skills (red)
+- the reasons behind every point, and the decision-support disclaimer
+
+If something goes wrong, the panel says what happened and what to do next, for example:
+- a scanned PDF with no text: paste the CV text instead
+- a file that is too large
+- a model or provider error
+- no API key configured
+- the server can't be reached
+
+Other details:
+- The page follows the system light or dark setting and has a theme toggle; the choice is remembered in the browser.
+- It works on mobile and can be used with the keyboard alone.
+- All text from the API is inserted as plain text, never as HTML.
 
 ### Examples
 
@@ -107,6 +144,8 @@ Example response (shortened):
 
 | Method | Path         | Body                                            |
 |--------|--------------|-------------------------------------------------|
+| GET    | `/`          | web interface (HTML)                            |
+| GET    | `/samples`   | none; returns synthetic sample CVs and jobs     |
 | GET    | `/health`    | none                                            |
 | POST   | `/match`     | JSON `{cv_text, job_text}`                      |
 | POST   | `/match/pdf` | multipart `cv_file` (PDF, ≤ 5 MB) + `job_text`  |
@@ -143,9 +182,12 @@ app/
   extraction.py    prompts, validation, retry, PROMPT_VERSION
   scoring.py       deterministic weighted scoring
   models.py        Pydantic models
+  samples.py       read-only loader for the synthetic samples
   config.py        settings from .env
   llm/             LLMClient interface, OpenAI client, disk cache
   parsing/         PDF text extraction, anonymization
+  static/          web interface: index.html, style.css, app.js
 data/synthetic/    synthetic CVs and job descriptions
-tests/             unit, API and end-to-end tests
+docs/              README screenshot
+tests/             unit, API, frontend and end-to-end tests
 ```
