@@ -6,7 +6,7 @@ Email: riley.thornquist@example.com
 Phone: +1 (555) 010-2233
 
 Profile
-Backend engineer with 7 years of experience building APIs and data services.
+Backend engineer with 9 years of experience building APIs and data services.
 
 Experience
 Senior Backend Engineer, Northwind Logistics (fictional), 2020 - present
