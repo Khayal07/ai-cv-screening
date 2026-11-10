@@ -36,13 +36,17 @@ A job skill also counts as matched when its word tokens appear as a contiguous s
 or the other way round: `SQL` satisfies `SQL query optimisation`. Matching uses whole tokens, never substrings,
 so `Java` never matches `JavaScript`, `Go` never matches `MongoDB`, and `C` never matches `C++`, `C#` or `Objective-C`.
 When the CV wording differs, the reason names it, for example `SQL query optimisation via SQL`.
+A small one-way implication map (`IMPLIES` in `app/scoring.py`) lets a specific CV skill satisfy a general job skill:
+`PostgreSQL → SQL`, `FastAPI → Python`, `React → JavaScript`. It never works in reverse (CV `SQL` does not satisfy job
+`PostgreSQL`) and never chains (`Next.js` satisfies `React`, not `JavaScript`). The reason reads `SQL via PostgreSQL`.
 Component points stay as floats; the final score is rounded once to an integer.
 
 ## Fairness and limits
 
 - Name, age, gender and photo are removed before extraction and are never part of the scoring input.
 - Scoring is rule-based and transparent: every point can be traced to a line in `reasons`.
-- Skill matching works on word tokens and aliases only. Related skills (for example Django vs FastAPI) do not count as matches.
+- Skill matching works on word tokens, aliases and the one-way implication map only. Related skills
+  (for example Django vs FastAPI) do not count as matches.
 - All CVs in this repository are synthetic (`data/synthetic/`). Do not commit real CVs.
 
 ## Cost control

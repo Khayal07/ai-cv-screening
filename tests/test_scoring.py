@@ -4,9 +4,11 @@ import pytest
 
 from app.models import DISCLAIMER, CVProfile, EducationLevel, JobRequirements
 from app.scoring import (
+    IMPLIES,
     SKILL_ALIASES,
     WEIGHTS,
     SkillMatch,
+    implies,
     match_skills,
     normalize_skill,
     score_match,
@@ -207,3 +209,90 @@ def test_loose_match_raises_score() -> None:
     loose = score_match(make_cv(skills=["Python", "SQL"]), job).score
     assert loose > strict
     assert score_match(make_cv(skills=["Python", "SQL"]), job).missing_skills == []
+
+
+# ---------- One-way implications ----------
+
+IMPLIED_PAIRS = [  # (job skill, CV skill that implies it)
+    ("SQL", "PostgreSQL"),
+    ("SQL", "Postgres"),
+    ("SQL", "MySQL"),
+    ("SQL", "SQLite"),
+    ("SQL", "SQL Server"),
+    ("SQL", "MSSQL"),
+    ("Python", "FastAPI"),
+    ("Python", "Django"),
+    ("Python", "Flask"),
+    ("JavaScript", "React"),
+    ("JavaScript", "React.js"),
+    ("JavaScript", "Vue.js"),
+    ("JavaScript", "Angular"),
+    ("JavaScript", "TypeScript"),
+    ("React", "Next.js"),
+    ("Node.js", "Express"),
+]
+
+
+@pytest.mark.parametrize(("job_skill", "cv_skill"), IMPLIED_PAIRS)
+def test_cv_skill_implies_job_skill(job_skill: str, cv_skill: str) -> None:
+    matches, missing = match_skills([job_skill], [cv_skill])
+    assert matches == [SkillMatch(wanted=job_skill, found=cv_skill)]
+    assert missing == []
+
+
+SHORT_CV_SKILL_STILL_MATCHES = pytest.mark.xfail(
+    strict=True, reason="a short CV skill still satisfies a longer job skill"
+)
+
+
+def reversed_pairs() -> list[Any]:
+    """Implication pairs with roles swapped; job 'SQL Server' vs CV 'SQL' needs stricter tokens."""
+    loose = {"SQL Server", "MSSQL"}
+    return [
+        pytest.param(job, cv, marks=SHORT_CV_SKILL_STILL_MATCHES) if cv in loose else (job, cv)
+        for job, cv in IMPLIED_PAIRS
+    ]
+
+
+@pytest.mark.parametrize(("job_skill", "cv_skill"), reversed_pairs())
+def test_implication_is_one_way(job_skill: str, cv_skill: str) -> None:
+    # Swap roles: the general CV skill never satisfies the specific job skill.
+    matches, missing = match_skills([cv_skill], [job_skill])
+    assert matches == []
+    assert missing == [cv_skill]
+
+
+@pytest.mark.parametrize(
+    ("job_skill", "cv_skill"),
+    [
+        ("JavaScript", "Next.js"),  # next.js -> react -> javascript would be two hops
+        ("Python", "SQL"),
+        ("SQL", "Python"),
+        ("JavaScript", "Java"),
+    ],
+)
+def test_no_transitive_or_unrelated_implications(job_skill: str, cv_skill: str) -> None:
+    assert split_matches([job_skill], [cv_skill]) == ([], [job_skill])
+
+
+def test_implication_values_are_never_expanded() -> None:
+    # Every implied skill is checked against the CV skill's own entry only.
+    for cv_skill, implied in IMPLIES.items():
+        for job_skill in implied:
+            assert implies(cv_skill, job_skill)
+            for second_hop in IMPLIES.get(job_skill, frozenset()):
+                if second_hop not in implied:
+                    assert not implies(cv_skill, second_hop)
+
+
+def test_reason_shows_implied_match() -> None:
+    cv = make_cv(skills=["PostgreSQL", "FastAPI"])
+    job = make_job(required_skills=["SQL", "Python", "PostgreSQL"])
+    assert score_match(cv, job).reasons[0] == (
+        "Required skills: 3 of 3 matched (SQL via PostgreSQL; Python via FastAPI)."
+    )
+
+
+def test_exact_match_preferred_over_implication() -> None:
+    matches, _ = match_skills(["Python"], ["FastAPI", "Python"])
+    assert matches == [SkillMatch(wanted="Python", found="Python")]

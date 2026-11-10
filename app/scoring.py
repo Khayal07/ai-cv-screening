@@ -35,6 +35,36 @@ SKILL_ALIASES: dict[str, str] = {
     "google cloud": "gcp",
     "google cloud platform": "gcp",
     "ci cd": "ci/cd",
+    "vue.js": "vue",
+    "vuejs": "vue",
+    "angularjs": "angular",
+    "nextjs": "next.js",
+    "mssql": "sql server",
+    "microsoft sql server": "sql server",
+}
+
+# One-way implications: a CV skill (key) also satisfies these job skills.
+# Keys and values are normalized names. Never applied transitively:
+# "next.js" satisfies "react", but not "javascript".
+IMPLIES: dict[str, frozenset[str]] = {
+    "postgresql": frozenset({"sql"}),
+    "mysql": frozenset({"sql"}),
+    "mariadb": frozenset({"sql"}),
+    "sqlite": frozenset({"sql"}),
+    "sql server": frozenset({"sql"}),
+    "fastapi": frozenset({"python"}),
+    "django": frozenset({"python"}),
+    "flask": frozenset({"python"}),
+    "pandas": frozenset({"python"}),
+    "react": frozenset({"javascript"}),
+    "vue": frozenset({"javascript"}),
+    "angular": frozenset({"javascript"}),
+    "typescript": frozenset({"javascript"}),
+    "next.js": frozenset({"react"}),
+    "express": frozenset({"node.js"}),
+    "spring boot": frozenset({"java"}),
+    "ruby on rails": frozenset({"ruby"}),
+    "laravel": frozenset({"php"}),
 }
 
 
@@ -73,11 +103,18 @@ def skills_match(wanted: str, have: str) -> bool:
     return contains_sequence(a, b) or contains_sequence(b, a)
 
 
+def implies(have: str, wanted: str) -> bool:
+    """One hop only: the CV skill directly implies the job skill."""
+    return normalize_skill(wanted) in IMPLIES.get(normalize_skill(have), frozenset())
+
+
 def find_match(wanted: str, have: list[str]) -> str | None:
-    """Prefer an exact (normalized) match, then a token-sequence match."""
+    """Prefer an exact (normalized) match, then a token match, then an implication."""
     key = normalize_skill(wanted)
     exact = next((item for item in have if normalize_skill(item) == key), None)
-    return exact or next((item for item in have if skills_match(wanted, item)), None)
+    token = next((item for item in have if skills_match(wanted, item)), None)
+    implied = next((item for item in have if implies(item, wanted)), None)
+    return exact or token or implied
 
 
 def match_skills(wanted: list[str], have: list[str]) -> tuple[list[SkillMatch], list[str]]:
