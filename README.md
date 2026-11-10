@@ -32,13 +32,17 @@ Job description ─────────────────────�
 | Languages           | 5      | share of required languages found                |
 
 Skills are normalized (case, whitespace, aliases such as `JS → JavaScript` and `k8s → Kubernetes`).
+A job skill also counts as matched when its word tokens appear as a contiguous sequence inside a CV skill,
+or the other way round: `SQL` satisfies `SQL query optimisation`. Matching uses whole tokens, never substrings,
+so `Java` never matches `JavaScript`, `Go` never matches `MongoDB`, and `C` never matches `C++`, `C#` or `Objective-C`.
+When the CV wording differs, the reason names it, for example `SQL query optimisation via SQL`.
 Component points stay as floats; the final score is rounded once to an integer.
 
 ## Fairness and limits
 
 - Name, age, gender and photo are removed before extraction and are never part of the scoring input.
 - Scoring is rule-based and transparent: every point can be traced to a line in `reasons`.
-- Skill matching is exact after normalization. Related skills (for example Django vs FastAPI) do not count as matches.
+- Skill matching works on word tokens and aliases only. Related skills (for example Django vs FastAPI) do not count as matches.
 - All CVs in this repository are synthetic (`data/synthetic/`). Do not commit real CVs.
 
 ## Cost control

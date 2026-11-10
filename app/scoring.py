@@ -1,6 +1,7 @@
 """Deterministic, explainable scoring. No model calls happen here."""
 
 import re
+from dataclasses import dataclass
 
 from app.models import (
     EDUCATION_RANK,
@@ -37,16 +38,63 @@ SKILL_ALIASES: dict[str, str] = {
 }
 
 
+# A token is a run of letters/digits, optionally joined by dots or hyphens
+# (node.js, objective-c, scikit-learn) and followed by + or # (c++, c#).
+# Matching works on whole tokens only, never on raw substrings.
+TOKEN = re.compile(r"[^\W_]+(?:[.-][^\W_]+)*[+#]*")
+
+
+@dataclass(frozen=True)
+class SkillMatch:
+    wanted: str
+    found: str
+
+
 def normalize_skill(skill: str) -> str:
     key = re.sub(r"\s+", " ", skill.strip().lower())
     return SKILL_ALIASES.get(key, key)
 
 
+def skill_tokens(skill: str) -> tuple[str, ...]:
+    return tuple(TOKEN.findall(normalize_skill(skill)))
+
+
+def contains_sequence(outer: tuple[str, ...], inner: tuple[str, ...]) -> bool:
+    size = len(inner)
+    if size == 0 or size > len(outer):
+        return False
+    return any(outer[i : i + size] == inner for i in range(len(outer) - size + 1))
+
+
+def skills_match(wanted: str, have: str) -> bool:
+    if normalize_skill(wanted) == normalize_skill(have):
+        return True
+    a, b = skill_tokens(wanted), skill_tokens(have)
+    return contains_sequence(a, b) or contains_sequence(b, a)
+
+
+def find_match(wanted: str, have: list[str]) -> str | None:
+    """Prefer an exact (normalized) match, then a token-sequence match."""
+    key = normalize_skill(wanted)
+    exact = next((item for item in have if normalize_skill(item) == key), None)
+    return exact or next((item for item in have if skills_match(wanted, item)), None)
+
+
+def match_skills(wanted: list[str], have: list[str]) -> tuple[list[SkillMatch], list[str]]:
+    matches: list[SkillMatch] = []
+    missing: list[str] = []
+    for item in wanted:
+        found = find_match(item, have)
+        if found is None:
+            missing.append(item)
+        else:
+            matches.append(SkillMatch(wanted=item, found=found))
+    return matches, missing
+
+
 def split_matches(wanted: list[str], have: list[str]) -> tuple[list[str], list[str]]:
-    have_keys = {normalize_skill(item) for item in have}
-    matched = [item for item in wanted if normalize_skill(item) in have_keys]
-    missing = [item for item in wanted if normalize_skill(item) not in have_keys]
-    return matched, missing
+    matches, missing = match_skills(wanted, have)
+    return [match.wanted for match in matches], missing
 
 
 def score_match(cv: CVProfile, job: JobRequirements) -> MatchResult:
@@ -85,10 +133,24 @@ def _component(name: str, ratio: float, detail: str) -> ComponentScore:
 def _list_component(name: str, label: str, wanted: list[str], have: list[str]) -> ComponentScore:
     if not wanted:
         return _component(name, 1.0, f"{label}: none specified by the job.")
-    matched, missing = split_matches(wanted, have)
-    detail = f"{label}: {len(matched)} of {len(wanted)} matched"
-    detail += f" (missing: {', '.join(missing)})." if missing else "."
-    return _component(name, len(matched) / len(wanted), detail)
+    matches, missing = match_skills(wanted, have)
+    detail = _describe_matches(label, matches, missing, len(wanted))
+    return _component(name, len(matches) / len(wanted), detail)
+
+
+def _describe_matches(
+    label: str, matches: list[SkillMatch], missing: list[str], total: int
+) -> str:
+    """Name the CV skill behind every match whose wording differs from the job's."""
+    notes = [
+        f"{match.wanted} via {match.found}"
+        for match in matches
+        if match.wanted.casefold() != match.found.casefold()
+    ]
+    if missing:
+        notes.append(f"missing: {', '.join(missing)}")
+    detail = f"{label}: {len(matches)} of {total} matched"
+    return f"{detail} ({'; '.join(notes)})." if notes else f"{detail}."
 
 
 def _experience_component(years: float, min_years: float) -> ComponentScore:

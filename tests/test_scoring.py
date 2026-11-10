@@ -3,7 +3,17 @@ from typing import Any
 import pytest
 
 from app.models import DISCLAIMER, CVProfile, EducationLevel, JobRequirements
-from app.scoring import WEIGHTS, normalize_skill, score_match, split_matches
+from app.scoring import (
+    SKILL_ALIASES,
+    WEIGHTS,
+    SkillMatch,
+    match_skills,
+    normalize_skill,
+    score_match,
+    skill_tokens,
+    skills_match,
+    split_matches,
+)
 
 
 def make_cv(**overrides: Any) -> CVProfile:
@@ -111,3 +121,89 @@ def test_reasons_explain_each_component() -> None:
 
 def test_result_includes_disclaimer() -> None:
     assert score_match(make_cv(), make_job()).disclaimer == DISCLAIMER
+
+
+# ---------- Token matching ----------
+
+NO_MATCH_PAIRS = [
+    ("Java", "JavaScript"),
+    ("Go", "MongoDB"),
+    ("C", "C++"),
+    ("C", "C#"),
+    ("C++", "C#"),
+    ("C", "Objective-C"),
+    ("R", "React"),
+    ("Script", "JavaScript"),
+    ("PostgreSQL", "SQL"),
+    ("Scala", "Scalability"),
+    ("Rust", "Trust and safety"),
+]
+
+
+@pytest.mark.parametrize(("left", "right"), NO_MATCH_PAIRS)
+def test_no_false_matches_in_either_direction(left: str, right: str) -> None:
+    assert not skills_match(left, right)
+    assert not skills_match(right, left)
+    assert split_matches([left], [right]) == ([], [left])
+
+
+MATCH_PAIRS = [
+    ("SQL query optimisation", "SQL"),
+    ("SQL", "SQL query optimisation"),
+    ("REST API design", "REST"),
+    ("Kubernetes", "K8s"),
+    ("JavaScript", "JS"),
+    ("Node.js", "Node"),
+    ("C++", "C++ 17"),
+    ("Machine Learning", "ML"),
+    ("CI/CD", "CI CD"),
+    ("Python", "  python "),
+]
+
+
+@pytest.mark.parametrize(("wanted", "have"), MATCH_PAIRS)
+def test_token_sequence_matches(wanted: str, have: str) -> None:
+    assert skills_match(wanted, have)
+    assert split_matches([wanted], [have]) == ([wanted], [])
+
+
+def test_tokens_must_be_contiguous() -> None:
+    assert not skills_match("SQL design", "SQL query design")
+
+
+def test_tokens_keep_symbols_and_hyphens() -> None:
+    assert skill_tokens("C++ / C# and Objective-C") == ("c++", "c#", "and", "objective-c")
+
+
+def test_postgresql_matches_sql_only_through_an_alias(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert not skills_match("SQL", "PostgreSQL")
+    monkeypatch.setitem(SKILL_ALIASES, "postgresql", "sql")
+    assert skills_match("SQL", "PostgreSQL")
+
+
+def test_exact_match_preferred_over_token_match() -> None:
+    matches, _ = match_skills(["SQL"], ["SQL query optimisation", "SQL"])
+    assert matches == [SkillMatch(wanted="SQL", found="SQL")]
+
+
+def test_reason_names_the_cv_skill_behind_each_loose_match() -> None:
+    cv = make_cv(skills=["Python", "SQL", "K8s"])
+    job = make_job(required_skills=["Python", "SQL query optimisation", "Kubernetes", "Rust"])
+    reason = score_match(cv, job).reasons[0]
+    assert reason == (
+        "Required skills: 3 of 4 matched "
+        "(SQL query optimisation via SQL; Kubernetes via K8s; missing: Rust)."
+    )
+
+
+def test_exact_matches_need_no_via_note() -> None:
+    reason = score_match(make_cv(), make_job(required_skills=["python", "FastAPI"])).reasons[0]
+    assert reason == "Required skills: 2 of 2 matched."
+
+
+def test_loose_match_raises_score() -> None:
+    job = make_job(required_skills=["Python", "SQL query optimisation"], nice_to_have_skills=[])
+    strict = score_match(make_cv(skills=["Python"]), job).score
+    loose = score_match(make_cv(skills=["Python", "SQL"]), job).score
+    assert loose > strict
+    assert score_match(make_cv(skills=["Python", "SQL"]), job).missing_skills == []
