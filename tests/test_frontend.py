@@ -133,3 +133,23 @@ def test_styles_support_both_themes_and_reduced_motion() -> None:
     assert ':root[data-theme="dark"]' in css
     assert "prefers-reduced-motion" in css
     assert ":focus-visible" in css
+
+
+@pytest.mark.parametrize(
+    "sink", ["innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval("]
+)
+def test_script_never_uses_html_string_sinks(sink: str) -> None:
+    assert sink not in read_static("app.js")
+
+
+def test_script_maps_every_error_status() -> None:
+    js = read_static("app.js")
+    for marker in ("413:", "415:", "502:", "503:", "status === 422", '"no extractable text"',
+                   '"invalid PDF file"', "TypeError"):
+        assert marker in js, marker
+
+
+def test_script_calls_both_match_endpoints_and_samples() -> None:
+    js = read_static("app.js")
+    for endpoint in ('"/match"', '"/match/pdf"', '"/samples"'):
+        assert endpoint in js

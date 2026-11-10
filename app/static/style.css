@@ -105,6 +105,11 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Components set display: flex/grid; the hidden attribute must still win. */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -413,7 +418,7 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--primary) 8%, var(--surface-2));
 }
 
-.dropzone:focus-within {
+.dropzone:has(input:focus-visible) {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
@@ -453,6 +458,7 @@ textarea:focus-visible {
 .file-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   gap: var(--space-2);
   min-width: 0;
 }
@@ -809,12 +815,6 @@ textarea:focus-visible {
   transform-origin: left center;
   transform: scaleX(0);
   transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.breakdown-detail {
-  margin-top: var(--space-1);
-  color: var(--muted);
-  font-size: var(--text-small);
 }
 
 /* Skill chips */
