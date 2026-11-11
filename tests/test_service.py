@@ -30,3 +30,13 @@ def test_screen_rejects_non_cv_before_any_model_call() -> None:
         screen("Skills: Python, Go, Docker, Kubernetes", "Go developer wanted", fake)
     assert error.value.reasons
     assert fake.calls == []
+
+
+def test_screen_uses_the_given_date_for_present_roles() -> None:
+    from datetime import date
+
+    present = dict(CV_JSON, roles=[{"start": "2024-01", "end": "present", "skills": ["Go"]}])
+    job = dict(JOB_JSON, min_years=4)
+    early = screen(VALID_CV_TEXT, "Go", FakeLLMClient([present, job]), today=date(2025, 1, 1))
+    late = screen(VALID_CV_TEXT, "Go", FakeLLMClient([present, job]), today=date(2028, 1, 1))
+    assert early.score < late.score

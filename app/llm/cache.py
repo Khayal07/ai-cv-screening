@@ -22,13 +22,20 @@ class CachedLLMClient:
         payload = json.dumps([self.model, self._key_salt, system, user])
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
+    def has(self, system: str, user: str) -> bool:
+        """Whether this prompt is already cached (no model call would be made)."""
+        return self._path(system, user).exists()
+
     def complete_json(self, system: str, user: str) -> dict[str, Any]:
-        path = self._cache_dir / f"{self.cache_key(system, user)}.json"
+        path = self._path(system, user)
         if path.exists():
             return json.loads(path.read_text(encoding="utf-8"))
         result = self._inner.complete_json(system, user)
         self._write(path, result)
         return result
+
+    def _path(self, system: str, user: str) -> Path:
+        return self._cache_dir / f"{self.cache_key(system, user)}.json"
 
     def _write(self, path: Path, result: dict[str, Any]) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

@@ -42,3 +42,11 @@ def test_errors_are_not_cached(tmp_path: Path) -> None:
         client.complete_json("sys", "user")
     assert list(tmp_path.glob("*.json")) == []
     assert client.complete_json("sys", "user") == {"ok": True}
+
+
+def test_has_reports_cached_prompts_only(tmp_path: Path) -> None:
+    client = CachedLLMClient(FakeLLMClient([{"a": 1}]), tmp_path)
+    assert not client.has("sys", "user")
+    client.complete_json("sys", "user")
+    assert client.has("sys", "user")
+    assert not client.has("sys", "other")
