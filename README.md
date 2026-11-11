@@ -10,7 +10,7 @@ A FastAPI service that compares a CV with a job description and returns an
 30-50 seconds while the server wakes up. It is a demo only: do not upload real CVs. Use the sample CVs or a
 made-up one.
 
-![Web interface with the privacy notice above the inputs and a result of 72 (strong match): a warning box, score breakdown bars, matched and missing skills, reasons and the disclaimer](docs/screenshot.png)
+![Web interface: the CV and job form with sample cards and the privacy note, and a result of 72 (partial match) with a warning box, score breakdown bars, matched skills with their evidence, missing skills, reasons and the disclaimer, above the evaluation band](docs/screenshot.png)
 
 *Web interface with a synthetic CV and job description. The screenshot was taken locally with a stand-in model
 client, so no real model calls were made.*
@@ -183,16 +183,20 @@ There is no build step and it makes no external requests.
    - **Upload PDF**: drop a PDF on the upload area or choose a file (text-based PDF, up to 5 MB).
    - **Paste text**: paste the CV text.
 3. Paste the job description.
-   To try it quickly, select one of the **Sample CVs** and **Sample jobs**. They are loaded from `data/synthetic/` through `GET /samples`.
+   To try it quickly, select one of the cards under **Try a sample CV** and a chip under **Try a sample job**. They are loaded from `data/synthetic/` through `GET /samples`.
 4. Select **Score match**.
 
 The result panel shows:
 
-- a score gauge from 0 to 100: green for 70 and above, amber for 40–69, red below 40
+- a score gauge from 0 to 100 with a written label: **Strong match** for 80 and above (green), **Partial match**
+  for 50–79 (amber), **Weak match** below 50 (red). These are the same bands the evaluation uses.
 - one bar per scoring component, with points earned out of the component weight
 - **Check these**: warnings such as text copied from the job description or roles without skills (shown only when present)
-- matched skills (green) and missing required skills (red)
-- the reasons behind every point, and the decision-support disclaimer
+- matched skills (green), each marked with its evidence (used in a role, shown only in projects, or listed only),
+  and missing required skills (red)
+- the reasons behind every point, what was removed before scoring, and the decision-support disclaimer
+
+Below the form, an evaluation band shows the replayed evaluation result (see [Evaluation](#evaluation)).
 
 If something goes wrong, the panel says what happened and what to do next, for example:
 - text that does not look like a CV, such as a pasted job posting (the reasons are listed)
