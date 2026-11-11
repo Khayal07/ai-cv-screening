@@ -152,19 +152,29 @@
     </form>
 
     <section id="results-panel" class="panel results-panel" aria-labelledby="results-heading">
-      <h2 id="results-heading" class="panel-title" tabindex="-1">Result</h2>
+      <h2 id="results-heading" class="panel-title" tabindex="-1">What you'll get</h2>
 
-      <div id="state-empty" class="state state-empty">
-        <p class="state-title">No result yet</p>
-        <p>Add a CV and a job description, then select <strong>Score match</strong>.
-           The result shows the reason behind every point.</p>
-        <p class="redaction" aria-label="Name, age, gender and photo are removed before scoring.">
-          <span aria-hidden="true">Removed before scoring:</span>
-          <span class="redacted" aria-hidden="true">Name <span class="bar bar-l"></span></span>
-          <span class="redacted" aria-hidden="true">Age <span class="bar bar-s"></span></span>
-          <span class="redacted" aria-hidden="true">Gender <span class="bar bar-m"></span></span>
-          <span class="redacted" aria-hidden="true">Photo <span class="bar bar-m"></span></span>
-        </p>
+      <div id="state-empty" class="state-empty">
+        <div class="preview" aria-hidden="true">
+          <div class="gauge gauge-placeholder">
+            <svg viewBox="0 0 120 120" focusable="false"><circle class="gauge-track" cx="60" cy="60" r="52"/></svg>
+            <p class="gauge-value"><span class="gauge-dashes">––</span></p>
+          </div>
+          <div class="skeleton">
+            <span class="skeleton-line skeleton-title"></span>
+            <span class="skeleton-line skeleton-w1"></span>
+            <span class="skeleton-line skeleton-w2"></span>
+            <span class="skeleton-line skeleton-w3"></span>
+            <span class="skeleton-line skeleton-w4"></span>
+          </div>
+        </div>
+        <ul class="checklist">
+          <li>A 0–100 score with a Strong, Partial or Weak label</li>
+          <li>A breakdown by skills, experience, education and languages</li>
+          <li>Matched and missing skills, with proof of use</li>
+          <li>Plain-language reasons for every point</li>
+          <li>What was removed before scoring</li>
+        </ul>
       </div>
 
       <div id="state-loading" class="state state-loading" hidden>
@@ -190,20 +200,18 @@
               <p id="score-text" class="visually-hidden"></p>
             </div>
             <div class="verdict">
-              <p class="verdict-title"><span id="verdict" class="mark">—</span></p>
+              <p id="verdict" class="verdict-badge" data-range="none">—</p>
               <p id="summary" class="verdict-summary"></p>
-              <p class="redaction" aria-label="Name, age, gender and photo were removed before scoring.">
-                <span aria-hidden="true">Removed before scoring:</span>
-                <span class="redacted" aria-hidden="true">Name <span class="bar bar-l"></span></span>
-                <span class="redacted" aria-hidden="true">Age <span class="bar bar-s"></span></span>
-                <span class="redacted" aria-hidden="true">Gender <span class="bar bar-m"></span></span>
-                <span class="redacted" aria-hidden="true">Photo <span class="bar bar-m"></span></span>
-              </p>
             </div>
           </div>
 
           <section id="warnings-block" class="warnings" role="note" aria-labelledby="warnings-heading" hidden>
-            <h3 id="warnings-heading" class="warnings-title">Check these</h3>
+            <h3 id="warnings-heading" class="warnings-title">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.5v.01"/>
+              </svg>
+              Check these
+            </h3>
             <ul id="warnings" class="warnings-list"></ul>
           </section>
 
@@ -227,6 +235,17 @@
             <h3 id="reasons-heading" class="block-title">Reasons</h3>
             <ul id="reasons" class="reasons"></ul>
           </section>
+
+          <aside class="removed-note" aria-labelledby="removed-heading">
+            <p id="removed-heading" class="removed-title">Not used for scoring</p>
+            <p class="redaction" aria-label="Name, age, gender and photo were removed before scoring.">
+              <span aria-hidden="true">Removed before scoring:</span>
+              <span class="redacted" aria-hidden="true">Name <span class="bar bar-l"></span></span>
+              <span class="redacted" aria-hidden="true">Age <span class="bar bar-s"></span></span>
+              <span class="redacted" aria-hidden="true">Gender <span class="bar bar-m"></span></span>
+              <span class="redacted" aria-hidden="true">Photo <span class="bar bar-m"></span></span>
+            </p>
+          </aside>
 
           <aside class="disclaimer" aria-labelledby="disclaimer-heading">
             <p id="disclaimer-heading" class="disclaimer-title">Decision support only</p>

@@ -371,6 +371,7 @@
 
   function showState(id) {
     for (const stateId of STATES) $(stateId).hidden = stateId !== id;
+    $("results-heading").textContent = id === "state-empty" ? "What you'll get" : "Your result";
   }
 
   function setLoading(on) {
@@ -401,9 +402,10 @@
       && (result.warnings === undefined || Array.isArray(result.warnings));
   }
 
+  // Strong 80-100, Partial 50-79, Weak 0-49 (the same bands as the evaluation labels).
   function scoreRange(score) {
-    if (score >= 70) return { key: "strong", label: "Strong match" };
-    if (score >= 40) return { key: "partial", label: "Partial match" };
+    if (score >= 80) return { key: "strong", label: "Strong match" };
+    if (score >= 50) return { key: "partial", label: "Partial match" };
     return { key: "weak", label: "Weak match" };
   }
 
@@ -415,19 +417,30 @@
     const score = Math.max(0, Math.min(100, Math.round(result.score)));
     renderVerdict(score, result.missing_skills.length);
     renderBreakdown(result.breakdown);
-    renderChips("matched-skills", result.matched_skills, "No listed skills matched.");
+    renderMatchedChips(result.matched_skills, evidenceNotes(result.reasons));
     renderChips("missing-skills", result.missing_skills, "None. Every required skill was found.");
     renderList("reasons", result.reasons);
     renderWarnings(result.warnings || []);
     $("disclaimer").textContent = String(result.disclaimer || "");
     showState("state-results");
-    $("results-heading").focus();
+    revealResults();
     animateResult(score);
+  }
+
+  // Focus the heading for screen readers; on narrow screens the card sits under the form.
+  function revealResults() {
+    const narrow = window.matchMedia("(max-width: 900px)").matches;
+    $("results-heading").focus({ preventScroll: true });
+    $("results-panel").scrollIntoView({
+      behavior: reducedMotion.matches ? "auto" : "smooth",
+      block: narrow ? "start" : "nearest",
+    });
   }
 
   function renderVerdict(score, missingCount) {
     const range = scoreRange(score);
     $("gauge").setAttribute("data-range", range.key);
+    $("verdict").setAttribute("data-range", range.key);
     $("verdict").textContent = range.label;
     $("score-text").textContent = `Score ${score} out of 100. ${range.label}.`;
     $("summary").textContent = missingCount === 0
@@ -462,6 +475,49 @@
         }, fill));
     });
     $("breakdown").replaceChildren(...rows);
+  }
+
+  // The scoring reasons name weaker evidence, e.g.
+  // "Required skills: 4 of 6 matched (SQL via PostgreSQL; listed without evidence: Redis; missing: AWS)."
+  // Every matched skill not named there was used in work (a role, or a spoken language).
+  const EVIDENCE_NOTES = [
+    ["shown only in projects: ", "projects only"],
+    ["listed without evidence: ", "listed only"],
+  ];
+  const SKILL_REASON = /^(Required skills|Nice-to-have skills): .*?\((.*)\)\.$/;
+
+  function evidenceNotes(reasons) {
+    const notes = new Map();
+    const entry = (skill) => notes.get(skill) || notes.set(skill, {}).get(skill);
+    for (const reason of reasons) {
+      const match = SKILL_REASON.exec(String(reason));
+      if (!match) continue;
+      for (const note of match[2].split("; ")) {
+        const known = EVIDENCE_NOTES.find(([prefix]) => note.startsWith(prefix));
+        if (known) {
+          for (const skill of note.slice(known[0].length).split(", ")) entry(skill).level = known[1];
+        } else if (!note.startsWith("missing: ") && note.includes(" via ")) {
+          const at = note.lastIndexOf(" via ");
+          entry(note.slice(0, at)).via = note.slice(at + " via ".length);
+        }
+      }
+    }
+    return notes;
+  }
+
+  function renderMatchedChips(skills, notes) {
+    if (!skills.length) {
+      renderChips("matched-skills", skills, "No listed skills matched.");
+      return;
+    }
+    const items = skills.map((skill) => {
+      const note = notes.get(String(skill)) || {};
+      const evidence = [note.level || "used", note.via ? `via ${note.via}` : ""].filter(Boolean).join(" · ");
+      return el("li", { className: "chip", "data-evidence": note.level ? "weak" : "used" },
+        el("span", { className: "chip-name" }, String(skill)),
+        el("span", { className: "chip-evidence" }, evidence));
+    });
+    $("matched-skills").replaceChildren(...items);
   }
 
   function renderChips(listId, skills, emptyText) {

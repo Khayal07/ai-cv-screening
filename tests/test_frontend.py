@@ -205,3 +205,50 @@ def test_sample_cvs_render_as_cards_with_a_pressed_state() -> None:
     js = read_static("app.js")
     assert '"Synthetic CV"' in js and 'className: "sample-card"' in js
     assert '"aria-pressed"' in js
+
+
+# ---------- results panel ----------
+
+
+def test_preview_card_lists_what_the_result_contains() -> None:
+    html = read_static("index.html")
+    assert "What you&#39;ll get" in html or "What you'll get" in html
+    assert 'class="gauge gauge-placeholder"' in html and 'class="checklist"' in html
+    js = read_static("app.js")
+    assert '"What you\'ll get" : "Your result"' in js
+
+
+def test_verdict_bands_match_the_evaluation_bands() -> None:
+    js = read_static("app.js")
+    assert "score >= 80" in js and "score >= 50" in js
+    for label in ('"Strong match"', '"Partial match"', '"Weak match"'):
+        assert label in js
+    assert '$("verdict").setAttribute("data-range", range.key)' in js
+
+
+def test_results_scroll_into_view_and_focus_the_heading() -> None:
+    js = read_static("app.js")
+    assert '$("results-heading").focus({ preventScroll: true })' in js
+    assert '$("results-panel").scrollIntoView(' in js
+
+
+def test_evidence_parsing_matches_the_scoring_reason_wording() -> None:
+    """app.js reads evidence levels from the reasons; the wording must match scoring.py."""
+    from app.models import CVProfile, JobRequirements
+    from app.scoring import score_match
+    from tests.conftest import listed, role, used
+
+    cv = CVProfile(
+        skills=used("PostgreSQL", "Docker") + listed("Redis"),
+        roles=[role(5, "PostgreSQL")],
+    )
+    job = JobRequirements(required_skills=["SQL", "Docker", "Redis", "AWS"])
+    reason = score_match(cv, job).reasons[0]
+    assert reason == (
+        "Required skills: 3 of 4 matched (SQL via PostgreSQL; shown only in projects: Docker; "
+        "listed without evidence: Redis; missing: AWS)."
+    )
+    js = read_static("app.js")
+    for marker in ('"shown only in projects: "', '"listed without evidence: "', '"missing: "', '" via "',
+                   "Required skills|Nice-to-have skills"):
+        assert marker in js, marker
