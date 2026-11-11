@@ -108,6 +108,20 @@ the inputs.
 - **Limits.** Anonymization is rule-based (see [Fairness and limits](#fairness-and-limits)), and the job
   description is not anonymized. Deleting `CACHE_DIR` removes everything the server has stored.
 
+## Security
+
+- **Headers on every response** (`app/security.py`): a Content Security Policy that allows only the app's own
+  scripts, styles and requests (`script-src 'self'; style-src 'self'`, no inline script or style, images also from
+  `data:` for the favicon), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a
+  `Permissions-Policy` that turns off camera, microphone and location, and in production
+  `Strict-Transport-Security`. Tests check that the page has no inline script, `style` attribute or event handler.
+- **Request size limit:** bodies over 6 MB get 413, both when `Content-Length` says so and when a streamed body
+  grows past it.
+- **Production mode** (`ENVIRONMENT=production`, the default in the Docker image): the OpenAPI schema and the docs
+  pages are not served.
+- **No stack traces:** an unhandled error returns `{"detail": "internal error"}` with status 500, and only the
+  exception type is logged.
+
 ## Cost control
 
 - Every model call goes through the `LLMClient` interface and is cached on disk (`CACHE_DIR`, default `.cache/llm`).
@@ -142,6 +156,8 @@ cp .env.example .env               # then set OPENAI_API_KEY
 | `RATE_LIMIT_PER_DAY`    | `30`   | Match requests per client IP per rolling 24 hours (0 = off) |
 | `DAILY_MODEL_CALL_LIMIT` | `100` | Real model calls per UTC day across all clients; cache hits are free (0 = no calls) |
 | `TRUSTED_PROXY_HOPS`    | `0`    | Proxies in front of the app; the client IP is read from `X-Forwarded-For` only when this is above 0 |
+| `ENVIRONMENT`           | `development` | `production` turns off `/docs`, `/redoc` and `/openapi.json` and adds HSTS |
+| `FRAME_ANCESTORS`       | `'none'` | CSP `frame-ancestors`: who may embed the page in a frame |
 
 ## Run
 
@@ -386,7 +402,9 @@ docker run -p 8000:8000 --env-file .env cv-screening
 
 ```
 app/
-  main.py          API routes and error mapping
+  main.py          app factory, API routes, error mapping
+  security.py      security headers, request size limit, 500 without details
+  ratelimit.py     per-client request limits, client IP behind proxies
   service.py       pipeline: check → anonymize → extract → score
   extraction.py    prompts, per-prompt versions, validation, retry
   scoring.py       deterministic weighted scoring
@@ -396,9 +414,9 @@ app/
   config.py        settings from .env
   evaluation.py    evaluation labels, case checks, rankings, report table
   eval_clients.py  replay, call budget and recording clients for the evaluation
-  llm/             LLMClient interface, OpenAI client, disk cache
+  llm/             LLMClient interface, OpenAI client, disk cache, daily call cap
   parsing/         PDF text, anonymization, date ranges, document check, text overlap
-  static/          web interface: index.html, style.css, app.js
+  static/          web interface: index.html, style.css, theme.js, app.js
 data/synthetic/    synthetic CVs and job descriptions
 data/eval/         evaluation CVs, labels.json, recorded extractions
 docs/              README screenshot
