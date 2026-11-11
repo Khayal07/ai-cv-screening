@@ -31,12 +31,8 @@ KNOWN_FAILURES: dict[str, str] = {
         "67 > 65: projects extracted as roles (2 years), unfinished degree as bachelor",
     "da_junior_projects@jd_data_analyst":
         "82 > 65: projects extracted as roles (2 years), unfinished degree as bachelor",
-    "da_strong_1@jd_data_analyst":
-        "82 < 85: 'Tableau or Power BI' extracted as two required skills; Spanish as a skill",
     "da_strong_2@jd_data_analyst":
         "78 < 80: 'Tableau or Power BI' extracted as two required skills",
-    "da_strong_3@jd_data_analyst":
-        "78 < 80: 'Tableau or Power BI' extracted as two required skills; Spanish as a skill",
     "da_copied_reqs@jd_data_analyst":
         "80 > 79: skills from the pasted requirements block earn listed-only credit",
 }

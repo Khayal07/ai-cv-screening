@@ -152,15 +152,21 @@ def split_matches(wanted: list[str], have: list[str]) -> tuple[list[str], list[s
 
 
 def match_cv_skills(
-    wanted: list[str], cv_skills: list[CVSkill]
+    wanted: list[str], cv_skills: list[CVSkill], languages: list[str] | None = None
 ) -> tuple[list[SkillMatch], list[str]]:
-    """Like match_skills, but prefer CV skills with evidence (full credit) over listed-only ones."""
+    """Like match_skills, but prefer CV skills with evidence (full credit) over listed-only ones.
+
+    A job skill that is a spoken language (e.g. a nice-to-have "Spanish") is also matched
+    against the CV's languages; speaking it counts as evidence.
+    """
     evidenced = [skill.name for skill in cv_skills if skill.evidence]
     listed = [skill.name for skill in cv_skills]
     matches: list[SkillMatch] = []
     missing: list[str] = []
     for item in wanted:
         if (found := find_match(item, evidenced)) is not None:
+            matches.append(SkillMatch(wanted=item, found=found, evidence=True))
+        elif (found := find_match(item, languages or [])) is not None:
             matches.append(SkillMatch(wanted=item, found=found, evidence=True))
         elif (found := find_match(item, listed)) is not None:
             matches.append(SkillMatch(wanted=item, found=found, evidence=False))
@@ -218,8 +224,8 @@ def _experience_warnings(unreadable: int, no_skills: int) -> list[str]:
 def score_match(cv: CVProfile, job: JobRequirements, today: date | None = None) -> MatchResult:
     job_skills = job.required_skills + job.nice_to_have_skills
     experience = summarize_experience(cv.roles, job_skills, today or date.today())
-    required, req_missing = match_cv_skills(job.required_skills, cv.skills)
-    nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills)
+    required, req_missing = match_cv_skills(job.required_skills, cv.skills, cv.languages)
+    nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills, cv.languages)
     languages, lang_missing = match_skills(job.languages, cv.languages)
     components = [
         _matches_component(

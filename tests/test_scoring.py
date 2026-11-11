@@ -455,3 +455,37 @@ def test_no_roles_gives_zero_experience_points() -> None:
     experience = component(result, "experience")
     assert experience.points == 0
     assert experience.detail == "Experience: 0.0 relevant years of 0.0 total (required 3)."
+
+
+# ---------- spoken languages named as job skills ----------
+
+
+def test_language_skill_is_matched_by_cv_languages() -> None:
+    cv = make_cv(languages=["English", "Spanish"])
+    job = make_job(nice_to_have_skills=["Docker", "Spanish"])
+    nice = component(score_match(cv, job), "nice_to_have_skills")
+    assert nice.ratio == 1.0
+    assert nice.detail == "Nice-to-have skills: 2 of 2 matched."
+
+
+def test_language_with_level_matches_and_reason_names_it() -> None:
+    matches, missing = match_cv_skills(["Spanish"], [], ["Spanish (intermediate)"])
+    assert matches == [SkillMatch(wanted="Spanish", found="Spanish (intermediate)", evidence=True)]
+    assert missing == []
+
+
+def test_evidenced_skill_is_preferred_over_a_language() -> None:
+    cv_skills = [CVSkill(name="Spanish translation", evidence=True)]
+    matches, _ = match_cv_skills(["Spanish"], cv_skills, ["Spanish"])
+    assert matches[0].found == "Spanish translation"
+
+
+def test_language_beats_a_listed_only_skill() -> None:
+    matches, _ = match_cv_skills(["Spanish"], [CVSkill(name="Spanish")], ["Spanish"])
+    assert matches[0].evidence is True
+
+
+def test_languages_do_not_satisfy_technical_skills() -> None:
+    matches, missing = match_cv_skills(["Go", "R"], [], ["English", "Romanian"])
+    assert matches == []
+    assert missing == ["Go", "R"]
