@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAIError
@@ -97,6 +98,16 @@ def handle_rate_limit(_request: Request, exc: RateLimitExceeded) -> JSONResponse
         content={"detail": limit_message(exc.retry_after)},
         headers={"Retry-After": str(exc.retry_after)},
     )
+
+
+@app.exception_handler(RequestValidationError)
+def handle_invalid_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Like FastAPI's default 422, but never echoes the submitted text back."""
+    errors = [
+        {"loc": list(error.get("loc", [])), "msg": error.get("msg", ""), "type": error.get("type", "")}
+        for error in exc.errors()
+    ]
+    return JSONResponse(status_code=422, content={"detail": errors})
 
 
 @app.exception_handler(ExtractionError)

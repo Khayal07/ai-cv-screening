@@ -41,6 +41,15 @@
     <form id="match-form" class="panel input-panel" novalidate aria-labelledby="inputs-heading">
       <h1 id="inputs-heading" class="panel-title">Inputs</h1>
 
+      <aside id="privacy-notice" class="privacy-notice" aria-labelledby="privacy-heading">
+        <p id="privacy-heading" class="privacy-title">Demo only. Do not upload real CVs.</p>
+        <ul class="privacy-list">
+          <li>Personal details are removed from the CV, then the text is sent to OpenAI for extraction.</li>
+          <li>The server stores nothing except a cache of the anonymized extraction results.</li>
+          <li>Use the samples or a made-up CV.</li>
+        </ul>
+      </aside>
+
       <fieldset class="field-group">
         <legend class="field-label">Candidate CV</legend>
 

@@ -88,6 +88,26 @@ A list of keywords therefore cannot reach a high score.
   sign-off (for example "worked with Jane on ...") is not removed.
 - All CVs in this repository are synthetic (`data/synthetic/`). Do not commit real CVs.
 
+## Privacy
+
+This is a demo. Do not submit real CVs: use the synthetic samples or a made-up CV. The page says the same above
+the inputs.
+
+- **What is sent out.** The CV text, after anonymization (see [How it works](#how-it-works)), and the job
+  description are sent to the OpenAI API for extraction. OpenAI's
+  [API data policy](https://platform.openai.com/docs/guides/your-data) applies to that text.
+- **What is stored.** Only the extraction cache in `CACHE_DIR`: one JSON file per prompt, named by a SHA-256 hash,
+  holding the model's structured output (skills, role dates, education level, languages, job requirements). The CV
+  text, the uploaded PDF and the job text are never written to disk. The daily usage file holds a single number.
+- **What is logged.** The app itself logs nothing about requests. The server's access log (uvicorn, and the hosting
+  platform) records method, path, status and client IP, not request bodies. A test fails if app code calls
+  `print` or `logging`.
+- **Error responses never echo the submitted text.** Validation errors (422) list only the field, message and type,
+  without FastAPI's usual `input` value.
+- **Client IPs** are kept in memory for rate limiting, for at most 24 hours, and are never written to disk.
+- **Limits.** Anonymization is rule-based (see [Fairness and limits](#fairness-and-limits)), and the job
+  description is not anonymized. Deleting `CACHE_DIR` removes everything the server has stored.
+
 ## Cost control
 
 - Every model call goes through the `LLMClient` interface and is cached on disk (`CACHE_DIR`, default `.cache/llm`).

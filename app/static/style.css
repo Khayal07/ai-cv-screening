@@ -942,6 +942,34 @@ textarea:focus-visible {
   line-height: 1;
 }
 
+/* Privacy notice */
+
+.privacy-notice {
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-small);
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+.privacy-title {
+  margin-bottom: var(--space-1);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.privacy-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.privacy-list li + li {
+  margin-top: 2px;
+}
+
 /* Disclaimer */
 
 .disclaimer {
