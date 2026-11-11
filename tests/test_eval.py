@@ -69,7 +69,7 @@ def test_rankings_hold_for_both_jobs() -> None:
 
 
 # Fixtures whose model input changed after recording; re-recorded with the next prompt version.
-KNOWN_STALE: list[str] = []
+KNOWN_STALE = ["be_partial_2.txt"]  # its date range is no longer redacted as a phone
 
 
 def test_fixtures_match_current_prompt_and_text() -> None:

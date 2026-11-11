@@ -5,6 +5,8 @@ Runs before any text reaches the model, so scoring can never depend on it.
 
 import re
 
+from app.parsing.dates import DATE_RANGE
+
 LABELLED_LINE = re.compile(
     r"^\s*(full\s+name|name|date\s+of\s+birth|birth\s*date|d\.?o\.?b\.?|age|gender|sex|"
     r"pronouns|photo|picture|email|e-mail|phone|mobile|tel|address|marital\s+status|"
@@ -82,8 +84,18 @@ def _is_residue(line: str) -> bool:
 
 
 def _redact_phone(match: re.Match[str]) -> str:
-    digits = sum(char.isdigit() for char in match.group())
-    return "" if digits >= MIN_PHONE_DIGITS else match.group()
+    """Drop phone-like digit runs, but keep date ranges such as 2019-03 - 2021-07 inside them."""
+    candidate, kept, last = match.group(), [], 0
+    for date_range in DATE_RANGE.finditer(candidate):
+        kept += [_drop_if_phone(candidate[last : date_range.start()]), date_range.group()]
+        last = date_range.end()
+    kept.append(_drop_if_phone(candidate[last:]))
+    return "".join(kept)
+
+
+def _drop_if_phone(piece: str) -> str:
+    digits = sum(char.isdigit() for char in piece)
+    return "" if digits >= MIN_PHONE_DIGITS else piece
 
 
 def _collapse_blank_lines(text: str) -> str:

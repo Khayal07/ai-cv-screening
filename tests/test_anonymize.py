@@ -144,3 +144,28 @@ def test_removes_birth_details_inside_a_line() -> None:
 )
 def test_keeps_words_that_only_contain_born(text: str) -> None:
     assert strip_personal_data(text) == text
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Analyst, 2019-03 - 2021-07",
+        "Intern Developer, Example Bank (fictional), 2023.01 - 2023.12",
+        "Developer, 2019.03-2021.07",
+        "Engineer, 2020/01 - 2022/06",
+        "Engineer, 2019-03 – present",
+    ],
+)
+def test_year_month_date_ranges_are_not_phone_numbers(line: str) -> None:
+    assert strip_personal_data(line) == line
+
+
+def test_phone_next_to_a_date_range_is_still_removed() -> None:
+    cleaned = strip_personal_data("Contact 555 010 2233 2019-03 - 2020-01")
+    assert "2233" not in cleaned
+    assert "2019-03 - 2020-01" in cleaned
+
+
+@pytest.mark.parametrize("phone", ["+1 (555) 010-2233", "+44 7700 900123", "+45 2012 3456"])
+def test_phone_numbers_are_still_removed(phone: str) -> None:
+    assert strip_personal_data(f"Call {phone} today") == "Call  today"
