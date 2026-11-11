@@ -5,8 +5,14 @@ from app.llm.client import LLMClient
 from app.models import MatchResult
 from app.parsing.anonymize import strip_personal_data
 from app.parsing.cv_check import NotACVError, looks_like_cv
+from app.parsing.dates import normalize_date_ranges
 from app.parsing.overlap import exclude_copied_skills, excluded_skills_warning, overlap_warning
 from app.scoring import score_match
+
+
+def prepare_cv_text(cv_text: str) -> str:
+    """The CV text the model sees: personal data removed, dotted date ranges normalised."""
+    return normalize_date_ranges(strip_personal_data(cv_text))
 
 
 def screen(
@@ -21,7 +27,7 @@ def screen(
     if not check.is_cv:
         raise NotACVError(check.reasons)
     overlap = overlap_warning(cv_text, job_text)
-    cv_profile = extract_cv_profile(strip_personal_data(cv_text), llm)
+    cv_profile = extract_cv_profile(prepare_cv_text(cv_text), llm)
     excluded: list[str] = []
     if overlap is not None:
         cv_profile, excluded = exclude_copied_skills(cv_profile, cv_text, job_text)

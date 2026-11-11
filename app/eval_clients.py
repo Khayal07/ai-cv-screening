@@ -12,8 +12,8 @@ from app.evaluation import CVS_DIR, EXTRACTIONS_DIR, JOBS_DIR, EvalCase, EvalLab
 from app.extraction import CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, MAX_INPUT_CHARS, prompt_version
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMClient
-from app.parsing.anonymize import strip_personal_data
 from app.parsing.cv_check import looks_like_cv
+from app.service import prepare_cv_text
 
 
 class ReplayError(Exception):
@@ -37,7 +37,7 @@ class Fixture(BaseModel):
 
 def cv_model_input(cv_text: str) -> str:
     """The exact text the CV extraction prompt receives."""
-    return strip_personal_data(cv_text)[:MAX_INPUT_CHARS]
+    return prepare_cv_text(cv_text)[:MAX_INPUT_CHARS]
 
 
 def job_model_input(job_text: str) -> str:
