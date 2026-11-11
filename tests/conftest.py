@@ -1,4 +1,5 @@
 import socket
+from collections.abc import Iterator
 from typing import Any
 
 import pytest
@@ -59,6 +60,16 @@ class FakeLLMClient:
 
 
 LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
+
+
+@pytest.fixture(autouse=True)
+def fresh_rate_limiter() -> Iterator[None]:
+    """Each test starts with empty per-client request counts."""
+    from app.main import get_rate_limiter
+
+    get_rate_limiter.cache_clear()
+    yield
+    get_rate_limiter.cache_clear()
 
 
 @pytest.fixture(autouse=True)

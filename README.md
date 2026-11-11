@@ -93,6 +93,10 @@ A list of keywords therefore cannot reach a high score.
 - Every model call goes through the `LLMClient` interface and is cached on disk (`CACHE_DIR`, default `.cache/llm`).
 - The cache key covers the model name, the prompt's own version (`CV_PROMPT_VERSION` or `JOB_PROMPT_VERSION`), the system prompt and the input. Bumping one prompt's version invalidates only that prompt's entries.
 - Inputs are truncated to 12,000 characters before they are sent.
+- `POST /match` and `POST /match/pdf` are rate limited per client IP (`RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_PER_DAY`).
+  The counts live in memory, so run one worker per instance. Behind a proxy, set `TRUSTED_PROXY_HOPS` to the number
+  of proxies: the client IP is that many entries from the right of `X-Forwarded-For`, so entries a client adds on
+  the left are ignored.
 
 ## Setup
 
@@ -110,6 +114,9 @@ cp .env.example .env               # then set OPENAI_API_KEY
 | `OPENAI_API_KEY` | (empty)       | API key; required for `/match*` |
 | `LLM_MODEL`      | `gpt-4o-mini` | Model used for extraction       |
 | `CACHE_DIR`      | `.cache/llm`  | Disk cache for model responses  |
+| `RATE_LIMIT_PER_MINUTE` | `5`    | Match requests per client IP per minute (0 = off) |
+| `RATE_LIMIT_PER_DAY`    | `30`   | Match requests per client IP per rolling 24 hours (0 = off) |
+| `TRUSTED_PROXY_HOPS`    | `0`    | Proxies in front of the app; the client IP is read from `X-Forwarded-For` only when this is above 0 |
 
 ## Run
 
@@ -222,6 +229,7 @@ A pasted job description is rejected before any model call:
 | 413    | PDF larger than 5 MB                                             |
 | 415    | uploaded file is not a PDF                                       |
 | 422    | invalid input, invalid PDF, `no extractable text` (scanned), or `does not look like a CV` (with `reasons`) |
+| 429    | too many match requests from this client; `Retry-After` gives the wait in seconds |
 | 502    | model output still invalid after one retry, or provider error    |
 | 503    | `OPENAI_API_KEY` not configured                                  |
 

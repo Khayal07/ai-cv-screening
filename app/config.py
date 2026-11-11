@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     cache_dir: Path = Path(".cache/llm")
     samples_dir: Path = PROJECT_ROOT / "data" / "synthetic"
+    rate_limit_per_minute: int = 5
+    rate_limit_per_day: int = 30
+    trusted_proxy_hops: int = 0
 
 
 @lru_cache

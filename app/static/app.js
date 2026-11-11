@@ -17,6 +17,8 @@
     languages: "Languages",
   };
 
+  const RATE_LIMIT_NOTE = "This demo allows a few matches per minute and per day for each visitor.";
+
   const ERRORS = {
     noText: {
       title: "No text found in this PDF",
@@ -41,6 +43,10 @@
     415: {
       title: "This file is not a PDF",
       message: "Upload a PDF file, or paste the CV text instead.",
+    },
+    429: {
+      title: "Too many requests",
+      message: `Wait a moment and try again. ${RATE_LIMIT_NOTE}`,
     },
     502: {
       title: "The model service returned an invalid response",
@@ -268,10 +274,18 @@
       if (detail === "does not look like a CV") return ERRORS.notCv;
       return ERRORS.validation;
     }
+    if (status === 429) return rateLimitError(detail);
     return ERRORS[status] || {
       title: "Scoring failed",
       message: `The server responded with status ${status}. Try again.`,
     };
+  }
+
+  // The server's 429 detail says how long to wait, e.g. "Too many requests. Try again in 40 seconds."
+  function rateLimitError(detail) {
+    if (typeof detail !== "string" || !detail.startsWith("Too many requests.")) return ERRORS[429];
+    const wait = detail.slice("Too many requests.".length).trim();
+    return { title: ERRORS[429].title, message: `${wait} ${RATE_LIMIT_NOTE}` };
   }
 
   // ---------- Requests ----------

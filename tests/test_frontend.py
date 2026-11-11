@@ -177,3 +177,9 @@ def test_frontend_handles_not_a_cv_with_reasons() -> None:
     assert '"does not look like a CV"' in js
     assert "error-reasons" in js
     assert 'id="error-reasons"' in read_static("index.html")
+
+
+def test_frontend_explains_rate_limits() -> None:
+    js = read_static("app.js")
+    assert "429:" in js and "status === 429" in js
+    assert '"Too many requests."' in js

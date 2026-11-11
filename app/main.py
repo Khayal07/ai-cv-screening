@@ -16,6 +16,15 @@ from app.llm.openai_client import OpenAIClient
 from app.models import MatchResult
 from app.parsing.cv_check import NotACVError
 from app.parsing.pdf import NoExtractableTextError, PDFParseError, extract_pdf_text
+from app.ratelimit import (
+    DAY,
+    MINUTE,
+    RateLimiter,
+    RateLimitExceeded,
+    Window,
+    client_ip,
+    limit_message,
+)
 from app.samples import SamplesResponse, load_samples
 from app.service import screen
 
@@ -47,6 +56,36 @@ def get_llm_client(settings: Annotated[Settings, Depends(get_settings)]) -> LLMC
 
 
 LLMDep = Annotated[LLMClient, Depends(get_llm_client)]
+
+
+@lru_cache
+def get_rate_limiter() -> RateLimiter:
+    settings = get_settings()
+    return RateLimiter(
+        [Window(MINUTE, settings.rate_limit_per_minute), Window(DAY, settings.rate_limit_per_day)]
+    )
+
+
+def enforce_rate_limit(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> None:
+    peer = request.client.host if request.client else None
+    forwarded = request.headers.get("x-forwarded-for")
+    limiter.check(client_ip(peer, forwarded, settings.trusted_proxy_hops))
+
+
+RateLimited = [Depends(enforce_rate_limit)]
+
+
+@app.exception_handler(RateLimitExceeded)
+def handle_rate_limit(_request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": limit_message(exc.retry_after)},
+        headers={"Retry-After": str(exc.retry_after)},
+    )
 
 
 @app.exception_handler(ExtractionError)
@@ -81,12 +120,12 @@ def samples(settings: Annotated[Settings, Depends(get_settings)]) -> SamplesResp
     return load_samples(settings.samples_dir)
 
 
-@app.post("/match")
+@app.post("/match", dependencies=RateLimited)
 def match(body: MatchRequest, llm: LLMDep) -> MatchResult:
     return screen(body.cv_text, body.job_text, llm)
 
 
-@app.post("/match/pdf")
+@app.post("/match/pdf", dependencies=RateLimited)
 def match_pdf(
     cv_file: Annotated[UploadFile, File()],
     job_text: Annotated[str, Form(min_length=1, max_length=MAX_TEXT_CHARS)],
