@@ -9,7 +9,7 @@ from openai import OpenAIError
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config import Settings, get_settings
-from app.extraction import PROMPT_VERSION, ExtractionError
+from app.extraction import ExtractionError, prompt_version
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMClient
 from app.llm.openai_client import OpenAIClient
@@ -37,7 +37,7 @@ class MatchRequest(BaseModel):
 @lru_cache
 def _build_client(api_key: str, model: str, cache_dir: Path) -> LLMClient:
     inner = OpenAIClient(api_key=api_key, model=model)
-    return CachedLLMClient(inner, cache_dir, key_salt=PROMPT_VERSION)
+    return CachedLLMClient(inner, cache_dir, key_salt=prompt_version)
 
 
 def get_llm_client(settings: Annotated[Settings, Depends(get_settings)]) -> LLMClient:

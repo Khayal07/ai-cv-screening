@@ -39,7 +39,7 @@ from app.evaluation import (  # noqa: E402
     load_labels,
     run_case,
 )
-from app.extraction import PROMPT_VERSION  # noqa: E402
+from app.extraction import prompt_version  # noqa: E402
 from app.llm.cache import CachedLLMClient  # noqa: E402
 from app.llm.client import LLMClient  # noqa: E402
 from app.llm.openai_client import OpenAIClient  # noqa: E402
@@ -91,7 +91,7 @@ def run_real(
     if not settings.openai_api_key:
         raise RunStopped("OPENAI_API_KEY is not configured; --real needs it")
     budget = BudgetLLMClient(make_inner(settings), args.max_calls)
-    cache = CachedLLMClient(budget, cache_dir(settings), key_salt=PROMPT_VERSION)
+    cache = CachedLLMClient(budget, cache_dir(settings), key_salt=prompt_version)
     misses = count_cache_misses(labels, cache)
     print(f"Planned model calls (cache misses): {misses}; budget: {args.max_calls}")
     if misses > args.max_calls:

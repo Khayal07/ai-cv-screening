@@ -50,3 +50,15 @@ def test_has_reports_cached_prompts_only(tmp_path: Path) -> None:
     client.complete_json("sys", "user")
     assert client.has("sys", "user")
     assert not client.has("sys", "other")
+
+
+def test_callable_salt_depends_on_the_system_prompt(tmp_path: Path) -> None:
+    client = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=lambda system: system.upper())
+    assert client.salt_for("a") == "A"
+    assert client.cache_key("a", "u") != client.cache_key("b", "u")
+
+
+def test_callable_salt_gives_the_same_key_as_the_equal_string(tmp_path: Path) -> None:
+    fixed = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v2")
+    per_prompt = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=lambda _system: "v2")
+    assert fixed.cache_key("s", "u") == per_prompt.cache_key("s", "u")

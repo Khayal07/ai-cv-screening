@@ -7,7 +7,9 @@ from pydantic import BaseModel, ValidationError
 from app.llm.client import LLMClient, LLMResponseError
 from app.models import CVProfile, JobRequirements
 
-PROMPT_VERSION = "v4"
+# Each prompt has its own version in the cache key: bumping one invalidates only its entries.
+CV_PROMPT_VERSION = "v4"
+JOB_PROMPT_VERSION = "v4"
 MAX_ATTEMPTS = 2
 MAX_INPUT_CHARS = 12_000
 
@@ -87,6 +89,17 @@ RETRY_NOTE = (
     "\n\nYour previous answer was invalid. Return only a JSON object "
     "with exactly the required keys and value types."
 )
+
+PROMPT_VERSIONS: dict[str, str] = {
+    CV_SYSTEM_PROMPT: CV_PROMPT_VERSION,
+    JOB_SYSTEM_PROMPT: JOB_PROMPT_VERSION,
+}
+
+
+def prompt_version(system: str) -> str:
+    """The version of a system prompt, used as its cache key salt ("" for unknown prompts)."""
+    return PROMPT_VERSIONS.get(system, "")
+
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 

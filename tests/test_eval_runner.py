@@ -36,7 +36,8 @@ from app.evaluation import (
     run_case,
     warning_kinds,
 )
-from app.extraction import CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, PROMPT_VERSION
+from app import extraction
+from app.extraction import CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, prompt_version
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMResponseError
 from app.parsing.overlap import overlap_warning
@@ -266,7 +267,7 @@ def test_recordings_store_output_hash_and_prompt_version(tmp_path: Path) -> None
     assert sorted(path.name for path in written) == ["be_strong_1.json", "jd_backend_engineer.json"]
     fixture = load_fixture(fixture_path("be_strong_1.txt", tmp_path))
     assert fixture is not None
-    assert fixture.prompt_version == PROMPT_VERSION
+    assert fixture.prompt_version == prompt_version(CV_SYSTEM_PROMPT)
     assert fixture.input_sha256 == input_hash(case_inputs(strong)[CV_SYSTEM_PROMPT][1])
     assert replay_client(strong, tmp_path).complete_json(CV_SYSTEM_PROMPT, "") == CV_JSON
 
@@ -277,8 +278,21 @@ def test_stale_fixtures_are_reported(tmp_path: Path) -> None:
     labels = EvalLabels(today=TODAY, rankings=[], cases=[strong])
     assert stale_fixtures(labels, tmp_path) == []
     path = fixture_path("be_strong_1.txt", tmp_path)
-    path.write_text(path.read_text(encoding="utf-8").replace(PROMPT_VERSION, "v0"), "utf-8")
+    old = f'"prompt_version": "{prompt_version(CV_SYSTEM_PROMPT)}"'
+    path.write_text(path.read_text(encoding="utf-8").replace(old, '"prompt_version": "v0"'), "utf-8")
     assert stale_fixtures(labels, tmp_path) == ["be_strong_1.txt"]
+
+
+def test_job_version_bump_makes_only_job_fixtures_stale(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    strong = case()
+    save_recordings(
+        strong, {CV_SYSTEM_PROMPT: CV_JSON, JOB_SYSTEM_PROMPT: JOB_JSON}, "fake-model", tmp_path
+    )
+    labels = EvalLabels(today=TODAY, rankings=[], cases=[strong])
+    monkeypatch.setitem(extraction.PROMPT_VERSIONS, JOB_SYSTEM_PROMPT, "v99")
+    assert stale_fixtures(labels, tmp_path) == ["jd_backend_engineer.txt"]
 
 
 # --- script ---

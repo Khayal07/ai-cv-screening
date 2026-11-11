@@ -7,11 +7,13 @@ from app.extraction import (
     CV_SYSTEM_PROMPT,
     JOB_SYSTEM_PROMPT,
     MAX_INPUT_CHARS,
-    PROMPT_VERSION,
+    CV_PROMPT_VERSION,
+    JOB_PROMPT_VERSION,
     RETRY_NOTE,
     ExtractionError,
     extract_cv_profile,
     extract_job_requirements,
+    prompt_version,
 )
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMResponseError
@@ -73,7 +75,7 @@ def test_raises_after_retry_fails() -> None:
 
 def test_retry_uses_new_cache_key_so_bad_cached_output_is_bypassed(tmp_path: Path) -> None:
     fake = FakeLLMClient([{"skills": "not a list"}, VALID_CV])
-    cached = CachedLLMClient(fake, tmp_path, key_salt=PROMPT_VERSION)
+    cached = CachedLLMClient(fake, tmp_path, key_salt=prompt_version)
     assert [s.name for s in extract_cv_profile("cv", cached).skills] == ["Python", "FastAPI"]
     assert [s.name for s in extract_cv_profile("cv", cached).skills] == ["Python", "FastAPI"]
     assert len(fake.calls) == 2
@@ -90,8 +92,10 @@ def test_cv_prompt_excludes_personal_data() -> None:
         assert word in CV_SYSTEM_PROMPT
 
 
-def test_prompt_version_is_set() -> None:
-    assert PROMPT_VERSION == "v4"
+def test_each_prompt_has_its_own_version() -> None:
+    assert prompt_version(CV_SYSTEM_PROMPT) == CV_PROMPT_VERSION == "v4"
+    assert prompt_version(JOB_SYSTEM_PROMPT) == JOB_PROMPT_VERSION == "v4"
+    assert prompt_version("some other prompt") == ""
 
 
 @pytest.mark.parametrize("prompt", [CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT])
@@ -102,10 +106,31 @@ def test_prompts_ask_for_single_concept_skills(prompt: str) -> None:
     assert '"REST API design" -> ["REST"]' in prompt
 
 
-def test_prompt_version_changes_cache_key(tmp_path: Path) -> None:
-    current = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=PROMPT_VERSION)
-    previous = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v1")
-    assert current.cache_key(CV_SYSTEM_PROMPT, "cv") != previous.cache_key(CV_SYSTEM_PROMPT, "cv")
+def test_bumping_one_prompt_version_keeps_the_other_prompts_keys(tmp_path: Path) -> None:
+    def job_bumped(system: str) -> str:
+        return "v99" if system == JOB_SYSTEM_PROMPT else prompt_version(system)
+
+    current = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=prompt_version)
+    bumped = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=job_bumped)
+    assert current.cache_key(CV_SYSTEM_PROMPT, "cv") == bumped.cache_key(CV_SYSTEM_PROMPT, "cv")
+    assert current.cache_key(JOB_SYSTEM_PROMPT, "job") != bumped.cache_key(JOB_SYSTEM_PROMPT, "job")
+
+
+def test_per_prompt_keys_match_the_old_shared_version_keys(tmp_path: Path) -> None:
+    """With both prompts at v4, entries cached under the old shared "v4" salt still hit."""
+    per_prompt = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=prompt_version)
+    shared = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v4")
+    for system in (CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT):
+        assert per_prompt.cache_key(system, "text") == shared.cache_key(system, "text")
+
+
+def test_app_client_salts_cache_keys_per_prompt(tmp_path: Path) -> None:
+    from app.main import _build_client
+
+    client = _build_client("test-key", "test-model", tmp_path)
+    assert isinstance(client, CachedLLMClient)
+    assert client.salt_for(CV_SYSTEM_PROMPT) == CV_PROMPT_VERSION
+    assert client.salt_for(JOB_SYSTEM_PROMPT) == JOB_PROMPT_VERSION
 
 
 def test_cv_prompt_asks_for_skill_evidence() -> None:

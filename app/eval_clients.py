@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from app.evaluation import CVS_DIR, EXTRACTIONS_DIR, JOBS_DIR, EvalCase, EvalLabels, read_text
-from app.extraction import CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, MAX_INPUT_CHARS, PROMPT_VERSION
+from app.extraction import CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, MAX_INPUT_CHARS, prompt_version
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMClient
 from app.parsing.anonymize import strip_personal_data
@@ -151,7 +151,7 @@ def save_recordings(
     for system, (file_name, text) in case_inputs(case).items():
         if system in outputs:
             fixture = Fixture(
-                prompt_version=PROMPT_VERSION,
+                prompt_version=prompt_version(system),
                 model=model,
                 input_sha256=input_hash(text),
                 output=outputs[system],
@@ -171,13 +171,14 @@ def replay_client(case: EvalCase, directory: Path = EXTRACTIONS_DIR) -> ReplayLL
 
 
 def stale_fixtures(labels: EvalLabels, directory: Path = EXTRACTIONS_DIR) -> list[str]:
-    """Fixtures recorded with another prompt version or for text that has changed since."""
+    """Fixtures recorded with another version of their prompt, or for text changed since."""
     stale: list[str] = []
     for case in labels.cases:
-        for file_name, text in case_inputs(case).values():
+        for system, (file_name, text) in case_inputs(case).items():
             fixture = load_fixture(fixture_path(file_name, directory))
             if fixture is None:
                 continue
-            if fixture.prompt_version != PROMPT_VERSION or fixture.input_sha256 != input_hash(text):
+            version_changed = fixture.prompt_version != prompt_version(system)
+            if version_changed or fixture.input_sha256 != input_hash(text):
                 stale.append(file_name)
     return sorted(set(stale))

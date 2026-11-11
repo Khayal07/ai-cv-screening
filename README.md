@@ -76,7 +76,7 @@ reason names it: `listed without evidence: Redis`. A list of keywords therefore 
 ## Cost control
 
 - Every model call goes through the `LLMClient` interface and is cached on disk (`CACHE_DIR`, default `.cache/llm`).
-- The cache key covers the model name, `PROMPT_VERSION`, the system prompt and the input. Changing a prompt and bumping `PROMPT_VERSION` invalidates old entries.
+- The cache key covers the model name, the prompt's own version (`CV_PROMPT_VERSION` or `JOB_PROMPT_VERSION`), the system prompt and the input. Bumping one prompt's version invalidates only that prompt's entries.
 - Inputs are truncated to 12,000 characters before they are sent.
 
 ## Setup
@@ -231,7 +231,7 @@ docker run -p 8000:8000 --env-file .env cv-screening
 app/
   main.py          API routes and error mapping
   service.py       pipeline: anonymize → extract → score
-  extraction.py    prompts, validation, retry, PROMPT_VERSION
+  extraction.py    prompts, per-prompt versions, validation, retry
   scoring.py       deterministic weighted scoring
   experience.py    date math for roles: parsing, merging overlaps, years
   models.py        Pydantic models
