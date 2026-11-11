@@ -94,7 +94,7 @@ def test_cv_prompt_excludes_personal_data() -> None:
 
 def test_each_prompt_has_its_own_version() -> None:
     assert prompt_version(CV_SYSTEM_PROMPT) == CV_PROMPT_VERSION == "v4"
-    assert prompt_version(JOB_SYSTEM_PROMPT) == JOB_PROMPT_VERSION == "v4"
+    assert prompt_version(JOB_SYSTEM_PROMPT) == JOB_PROMPT_VERSION == "v5"
     assert prompt_version("some other prompt") == ""
 
 
@@ -116,12 +116,12 @@ def test_bumping_one_prompt_version_keeps_the_other_prompts_keys(tmp_path: Path)
     assert current.cache_key(JOB_SYSTEM_PROMPT, "job") != bumped.cache_key(JOB_SYSTEM_PROMPT, "job")
 
 
-def test_per_prompt_keys_match_the_old_shared_version_keys(tmp_path: Path) -> None:
-    """With both prompts at v4, entries cached under the old shared "v4" salt still hit."""
+def test_job_bump_keeps_cv_keys_from_the_shared_v4_salt(tmp_path: Path) -> None:
+    """CV entries cached under the old shared "v4" salt still hit; job entries do not."""
     per_prompt = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt=prompt_version)
     shared = CachedLLMClient(FakeLLMClient(), tmp_path, key_salt="v4")
-    for system in (CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT):
-        assert per_prompt.cache_key(system, "text") == shared.cache_key(system, "text")
+    assert per_prompt.cache_key(CV_SYSTEM_PROMPT, "t") == shared.cache_key(CV_SYSTEM_PROMPT, "t")
+    assert per_prompt.cache_key(JOB_SYSTEM_PROMPT, "t") != shared.cache_key(JOB_SYSTEM_PROMPT, "t")
 
 
 def test_app_client_salts_cache_keys_per_prompt(tmp_path: Path) -> None:
@@ -158,3 +158,9 @@ def test_cv_prompt_shows_numeric_dates_only() -> None:
 def test_job_prompt_keeps_alternatives_together() -> None:
     assert '"Tableau or Power BI"' in JOB_SYSTEM_PROMPT
     assert '"FastAPI (or similar framework)" -> "FastAPI"' in JOB_SYSTEM_PROMPT
+
+
+def test_job_prompt_shows_either_or_examples_as_output() -> None:
+    assert '"required_skills": ["SQL", "Tableau or Power BI"]' in JOB_SYSTEM_PROMPT
+    assert '(not ["SQL", "Tableau", "Power BI"])' in JOB_SYSTEM_PROMPT
+    assert '"required_skills": ["AWS or Azure"]' in JOB_SYSTEM_PROMPT

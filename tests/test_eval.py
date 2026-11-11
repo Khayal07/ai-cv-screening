@@ -24,11 +24,13 @@ from app.parsing.anonymize import strip_personal_data
 
 LABELS = load_labels()
 
-# Real failures still open after the v4 recording (2026-11-11), each with its root cause.
+# Real failures still open after the job v5 recording (2026-11-11), each with its root cause.
 # Strict: a case that starts passing must have its entry removed.
 KNOWN_FAILURES: dict[str, str] = {
-    "da_strong_2@jd_data_analyst":
-        "78 < 80: v4 job extraction still splits 'Tableau or Power BI' into two skills",
+    "da_junior_projects@jd_data_analyst":
+        "75 > 65: all 3 required skills shown in projects give full credit with 0 years",
+    "da_career_changer@jd_data_analyst":
+        "60 > 55: a teacher role using Excel (required) counts as 12.4 relevant years",
 }
 
 FIXTURE_KEYS = {
@@ -69,7 +71,7 @@ def test_rankings_hold_for_both_jobs() -> None:
 
 
 # Fixtures whose model input changed after recording; re-recorded with the next prompt version.
-KNOWN_STALE = ["be_partial_2.txt"]  # its date range is no longer redacted as a phone
+KNOWN_STALE: list[str] = []
 
 
 def test_fixtures_match_current_prompt_and_text() -> None:

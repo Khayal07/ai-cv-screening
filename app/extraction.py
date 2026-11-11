@@ -9,7 +9,7 @@ from app.models import CVProfile, JobRequirements
 
 # Each prompt has its own version in the cache key: bumping one invalidates only its entries.
 CV_PROMPT_VERSION = "v4"
-JOB_PROMPT_VERSION = "v4"
+JOB_PROMPT_VERSION = "v5"
 MAX_ATTEMPTS = 2
 MAX_INPUT_CHARS = 12_000
 
@@ -66,10 +66,13 @@ CV_SYSTEM_PROMPT = (
 )
 
 EITHER_OR_RULES = (
-    "A requirement that accepts concrete alternatives is one item, with the alternatives "
-    'joined by " or ". Examples: "A BI tool such as Tableau or Power BI" -> '
-    '"Tableau or Power BI"; "AWS or GCP" -> "AWS or GCP". Drop vague alternatives: '
-    '"FastAPI (or similar framework)" -> "FastAPI". Lists joined by "and" are still split. '
+    "A requirement that accepts concrete alternatives is ONE item, with the alternatives "
+    'joined by " or "; never split it into separate skills. Examples: '
+    '"Requirements: SQL; a BI tool such as Tableau or Power BI" -> '
+    '"required_skills": ["SQL", "Tableau or Power BI"] (not ["SQL", "Tableau", "Power BI"]); '
+    '"- Cloud experience with AWS or Azure" -> "required_skills": ["AWS or Azure"]. '
+    'Drop vague alternatives: "FastAPI (or similar framework)" -> "FastAPI". '
+    'Lists joined by "and" are still split. '
 )
 
 JOB_SYSTEM_PROMPT = (

@@ -1,7 +1,7 @@
 {
   "prompt_version": "v4",
   "model": "gpt-4o-mini",
-  "input_sha256": "10b7004f9fc561d71f7d01b3f7c31289ca6c37d43f421eda4e5a5c02d4f301fd",
+  "input_sha256": "3f9ff977d4ec648a51f817fa0e9d9c41458df59c7e1a8ea3713b01329526107a",
   "output": {
     "skills": [
       {
@@ -51,8 +51,8 @@
         ]
       },
       {
-        "start": "",
-        "end": "",
+        "start": "2023-01",
+        "end": "2023-12",
         "skills": [
           "Java",
           "Python"
