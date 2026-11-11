@@ -99,3 +99,22 @@ def test_fixture_holds_no_personal_data(path: object) -> None:
         text = read_text(source)
         removed = set(WORD.findall(text)) - set(WORD.findall(strip_personal_data(text)))
         assert not [word for word in removed if re.search(rf"\b{word}\b", output)]
+
+
+SCORED_OWN_TEXT = [
+    case for case in LABELS.cases
+    if case.outcome.value == "scored" and case.category != "copied_requirements"
+]
+
+
+@pytest.mark.parametrize("case", SCORED_OWN_TEXT, ids=lambda case: case.id)
+def test_real_cvs_lose_no_evidence_to_copy_detection(case: EvalCase) -> None:
+    from app.evaluation import JOBS_DIR
+    from app.models import CVProfile
+    from app.parsing.overlap import discount_copied_skills
+
+    fixture = load_fixture(fixture_path(case.cv))
+    assert fixture is not None
+    profile = CVProfile.model_validate(fixture.output)
+    cv_text, job_text = read_text(CVS_DIR / case.cv), read_text(JOBS_DIR / case.job)
+    assert discount_copied_skills(profile, cv_text, job_text) == profile

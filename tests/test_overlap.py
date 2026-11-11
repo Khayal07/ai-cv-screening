@@ -77,3 +77,61 @@ def test_screen_adds_warning_but_still_scores() -> None:
 def test_screen_without_overlap_has_no_warnings() -> None:
     result = screen(VALID_CV_TEXT, "Python developer wanted.", FakeLLMClient([CV_JSON, JOB_JSON]))
     assert result.warnings == []
+
+
+# ---------- skills named only in copied lines lose their evidence ----------
+
+from app.models import CVProfile  # noqa: E402
+from app.parsing.overlap import discount_copied_skills, split_copied_lines  # noqa: E402
+from tests.conftest import listed  # noqa: E402
+
+BACKEND_JOB = read(DATA_DIR / "jd_backend_engineer.txt")
+PASTED_CV = VALID_CV_TEXT + "\n" + BACKEND_JOB[BACKEND_JOB.index("Requirements") :]
+
+
+def evidence(profile: CVProfile) -> dict[str, bool]:
+    return {skill.name: skill.evidence for skill in profile.skills}
+
+
+def test_pasted_requirement_lines_are_copied() -> None:
+    copied, own = split_copied_lines(PASTED_CV, BACKEND_JOB)
+    assert "- Docker and Kubernetes in production" in copied
+    assert "- AWS" in copied and "Nice to have" in copied
+    assert "- Built REST APIs with Python and FastAPI." in own
+
+
+def test_line_sharing_a_few_words_is_not_copied() -> None:
+    job = "Requirements\n- Strong Python and FastAPI (or similar framework)"
+    copied, own = split_copied_lines("Built REST APIs with Python and FastAPI at Example.", job)
+    assert copied == []
+    assert own == ["Built REST APIs with Python and FastAPI at Example."]
+
+
+def test_skill_named_only_in_copied_lines_counts_as_listed() -> None:
+    profile = CVProfile(skills=used("Python", "Kubernetes", "AWS") + listed("Redis"))
+    discounted = discount_copied_skills(profile, PASTED_CV, BACKEND_JOB)
+    assert evidence(discounted) == {
+        "Python": True, "Kubernetes": False, "AWS": False, "Redis": False,
+    }
+
+
+def test_skill_not_named_in_the_text_keeps_evidence() -> None:
+    profile = CVProfile(skills=used("Terraform"))
+    assert discount_copied_skills(profile, PASTED_CV, BACKEND_JOB) == profile
+
+
+def test_real_cv_sharing_words_with_the_job_keeps_all_evidence() -> None:
+    profile = CVProfile(skills=used("Python", "FastAPI", "PostgreSQL", "Docker"))
+    assert discount_copied_skills(profile, VALID_CV_TEXT, BACKEND_JOB) == profile
+
+
+def test_screen_discounts_copied_skills_only_when_warning_fires() -> None:
+    cv_json = dict(CV_JSON, skills=used("Python", "Kubernetes"))
+    job_json = dict(JOB_JSON, required_skills=["Python", "Kubernetes"])
+    pasted = screen(PASTED_CV, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
+    own = screen(VALID_CV_TEXT, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
+    assert pasted.reasons[0] == (
+        "Required skills: 2 of 2 matched (listed without evidence: Kubernetes)."
+    )
+    assert own.reasons[0] == "Required skills: 2 of 2 matched."
+    assert own.warnings == [] and pasted.score < own.score
