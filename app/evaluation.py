@@ -40,7 +40,7 @@ CATEGORY_BANDS: dict[str, tuple[int, int] | None] = {
     "weak": (0, 45),
     "junior_projects": (25, 65),
     "career_changer": (15, 55),
-    "stuffed": (25, 54),
+    "stuffed": (25, 49),
     "copied_requirements": None,
     "cross_job": None,
 }

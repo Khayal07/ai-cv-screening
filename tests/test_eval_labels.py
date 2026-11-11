@@ -106,3 +106,14 @@ def test_ranking_rules_need_scored_categories() -> None:
             {"today": "2026-11-01", "rankings": [{"above": ["strong"], "below": ["non_cv"]}],
              "cases": []}
         )
+
+
+def test_stuffed_band_sits_below_the_partial_band() -> None:
+    stuffed, partial = CATEGORY_BANDS["stuffed"], CATEGORY_BANDS["partial"]
+    assert stuffed is not None and partial is not None
+    assert stuffed[1] < partial[0]
+
+
+def test_stuffed_range_above_the_band_is_refused() -> None:
+    with pytest.raises(ValidationError, match="outside the stuffed band"):
+        EvalCase.model_validate(scored(category="stuffed", score=[25, 54]))
