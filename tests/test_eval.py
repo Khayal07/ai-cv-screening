@@ -39,8 +39,6 @@ KNOWN_FAILURES: dict[str, str] = {
         "78 < 80: 'Tableau or Power BI' extracted as two required skills; Spanish as a skill",
     "da_copied_reqs@jd_data_analyst":
         "80 > 79: skills from the pasted requirements block earn listed-only credit",
-    "x_cover_letter@jd_data_analyst":
-        "scored 68: the document check accepts a cover letter",
 }
 
 FIXTURE_KEYS = {

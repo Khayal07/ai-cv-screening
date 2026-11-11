@@ -34,6 +34,14 @@ POSTING_PHRASES = (
     "you'll",
     "must have",
 )
+# Cover letter markers: a salutation line, the classic opening, and sign-offs.
+LETTER_SIGNALS: dict[str, re.Pattern[str]] = {
+    "Dear ...": re.compile(r"^\s*dear\s+\w", re.IGNORECASE | re.MULTILINE),
+    "I am writing to apply": re.compile(r"\bi am writing to apply\b", re.IGNORECASE),
+    "Yours sincerely": re.compile(r"\byours\s+(sincerely|faithfully)\b", re.IGNORECASE),
+    "Kind regards": re.compile(r"\b(kind|best|warm)\s+regards\b", re.IGNORECASE),
+}
+LETTER_SIGNALS_TO_REJECT = 2
 POSTING_HEADING = re.compile(r"^\s*(requirements|responsibilities)\s*:?\s*$", re.IGNORECASE | re.M)
 WORD = re.compile(r"[^\W_]+")
 
@@ -52,6 +60,7 @@ class DocumentCheck:
     date_ranges: int
     has_education: bool
     posting_phrases: list[str]
+    letter_signals: list[str] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
 
     @property
@@ -64,8 +73,16 @@ def looks_like_cv(text: str) -> DocumentCheck:
     date_ranges = len(DATE_RANGE.findall(text))
     has_education = EDUCATION.search(text) is not None
     phrases = find_posting_phrases(text)
+    letter = find_letter_signals(text)
     reasons = _rejection_reasons(words, date_ranges, has_education, phrases)
-    return DocumentCheck(words, date_ranges, has_education, phrases, reasons)
+    if len(letter) >= LETTER_SIGNALS_TO_REJECT:
+        quoted = ", ".join(f'"{signal}"' for signal in letter)
+        reasons.append(f"It reads like a cover letter ({quoted}), not a CV.")
+    return DocumentCheck(words, date_ranges, has_education, phrases, letter, reasons)
+
+
+def find_letter_signals(text: str) -> list[str]:
+    return [name for name, pattern in LETTER_SIGNALS.items() if pattern.search(text)]
 
 
 def find_posting_phrases(text: str) -> list[str]:
