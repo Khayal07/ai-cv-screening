@@ -115,3 +115,32 @@ def test_keeps_date_ranges() -> None:
 def test_keeps_professional_content() -> None:
     text = "Experience\n5 years of Python, FastAPI and PostgreSQL.\nBSc Computer Science"
     assert strip_personal_data(text) == text
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Born 1990",
+        "Born in 1990",
+        "born on 3 May 1990",
+        "Born in Lisbon",
+        "Born: 12/02/1990",
+    ],
+)
+def test_removes_birth_details(line: str) -> None:
+    assert strip_personal_data(f"Profile\n{line}\nPython developer") == "Profile\nPython developer"
+
+
+def test_removes_birth_details_inside_a_line() -> None:
+    assert strip_personal_data("Born 1990, married, two children.") == ""
+    cleaned = strip_personal_data("Analyst, born in 1990; based in Example City")
+    assert "born" not in cleaned and "1990" not in cleaned
+    assert cleaned.startswith("Analyst") and cleaned.endswith("; based in Example City")
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["Migrated born-digital archives to S3.", "Stubborn bugs fixed in the billing service."],
+)
+def test_keeps_words_that_only_contain_born(text: str) -> None:
+    assert strip_personal_data(text) == text

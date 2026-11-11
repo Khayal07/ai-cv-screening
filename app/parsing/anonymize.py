@@ -22,6 +22,8 @@ PHONE_CANDIDATE = re.compile(r"\+?\(?\d[\d\s().-]{7,}\d")
 AGE = re.compile(r"\b(aged\s+\d{1,2}|\d{1,2}\s*(years?\s+old|y/o|yo)\b)", re.IGNORECASE)
 TITLE_WITH_NAME = re.compile(r"\b(Mr|Mrs|Ms|Miss|Mx)\.?\s+(?:[A-Z][\w'-]+\s?){1,3}")
 PRONOUNS = re.compile(r"\b(he/him|she/her|they/them)\b", re.IGNORECASE)
+# "Born 1990", "Born in 1990", "born on 3 May 1990", "Born in Lisbon": up to the next , ; or line end.
+BIRTH = re.compile(r"\bborn(?:\s+(?:in|on))?\s*:?\s+[^\s,;][^,;\n]*", re.IGNORECASE)
 MIN_PHONE_DIGITS = 9
 
 JOB_TITLE_WORDS = {
@@ -66,7 +68,7 @@ def _drop_name_header(lines: list[str]) -> list[str]:
 def _clean_line(line: str) -> str | None:
     """Return the cleaned line, or None if only residue is left after removal."""
     cleaned = line
-    for pattern in (EMAIL, URL, AGE, TITLE_WITH_NAME, PRONOUNS, FAMILY):
+    for pattern in (EMAIL, URL, AGE, BIRTH, TITLE_WITH_NAME, PRONOUNS, FAMILY):
         cleaned = pattern.sub("", cleaned)
     cleaned = PHONE_CANDIDATE.sub(_redact_phone, cleaned).rstrip()
     if cleaned != line.rstrip() and _is_residue(cleaned):
