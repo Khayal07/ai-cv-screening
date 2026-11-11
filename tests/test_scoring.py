@@ -527,3 +527,51 @@ def test_one_nice_to_have_role_adds_no_experience() -> None:
     result = score_match(cv, job, today=date(2025, 1, 1))
     assert component(result, "experience").points == 0
     assert "0.0 relevant years of 10.0 total" in component(result, "experience").detail
+
+
+# ---------- "A or B" job skills ----------
+
+
+def test_or_skill_splits_into_alternatives() -> None:
+    from app.scoring import skill_alternatives
+
+    assert skill_alternatives("Tableau or Power BI") == ["Tableau", "Power BI"]
+    assert skill_alternatives("AWS OR GCP or Azure") == ["AWS", "GCP", "Azure"]
+    assert skill_alternatives("Oracle") == ["Oracle"]
+    assert skill_alternatives("Tensorflow") == ["Tensorflow"]
+
+
+@pytest.mark.parametrize("have", ["Tableau", "Power BI"])
+def test_either_alternative_gives_full_credit(have: str) -> None:
+    cv = make_cv(skills=used(have, "SQL"))
+    job = make_job(required_skills=["SQL", "Tableau or Power BI"], nice_to_have_skills=[])
+    required = component(score_match(cv, job), "required_skills")
+    assert required.ratio == 1.0
+    assert required.detail == f"Required skills: 2 of 2 matched (Tableau or Power BI via {have})."
+
+
+def test_or_skill_missing_when_no_alternative_matches() -> None:
+    matches, missing = match_cv_skills(["Tableau or Power BI"], [CVSkill(name="Looker")])
+    assert matches == []
+    assert missing == ["Tableau or Power BI"]
+
+
+def test_evidenced_alternative_beats_listed_alternative() -> None:
+    cv_skills = [CVSkill(name="Tableau"), CVSkill(name="Power BI", evidence=True)]
+    matches, _ = match_cv_skills(["Tableau or Power BI"], cv_skills)
+    assert matches == [SkillMatch(wanted="Tableau or Power BI", found="Power BI", evidence=True)]
+
+
+def test_exact_alternative_beats_implied_alternative() -> None:
+    cv_skills = [CVSkill(name="PostgreSQL", evidence=True), CVSkill(name="Python", evidence=True)]
+    matches, _ = match_cv_skills(["SQL or Python"], cv_skills)
+    assert matches[0].found == "Python"
+
+
+def test_alternatives_keep_one_way_rules() -> None:
+    matches, missing = match_cv_skills(["PostgreSQL or MySQL"], [CVSkill(name="SQL", evidence=True)])
+    assert matches == [] and missing == ["PostgreSQL or MySQL"]
+
+
+def test_role_using_one_alternative_is_relevant() -> None:
+    assert relevant(["Power BI"], ["Tableau or Power BI"], [])

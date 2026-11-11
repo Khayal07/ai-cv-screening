@@ -125,13 +125,40 @@ def implies(have: str, wanted: str) -> bool:
     return normalize_skill(wanted) in IMPLIES.get(normalize_skill(have), frozenset())
 
 
-def find_match(wanted: str, have: list[str]) -> str | None:
-    """Prefer an exact (normalized) match, then a token match, then an implication."""
+ALTERNATIVES = re.compile(r"\s+or\s+", re.IGNORECASE)
+
+
+def skill_alternatives(skill: str) -> list[str]:
+    """ "Tableau or Power BI" -> ["Tableau", "Power BI"]; a plain skill -> [skill]."""
+    parts = [part.strip() for part in ALTERNATIVES.split(skill.strip())]
+    return parts if len(parts) > 1 and all(parts) else [skill]
+
+
+def _exact(wanted: str, have: list[str]) -> str | None:
     key = normalize_skill(wanted)
-    exact = next((item for item in have if normalize_skill(item) == key), None)
-    token = next((item for item in have if skills_match(wanted, item)), None)
-    implied = next((item for item in have if implies(item, wanted)), None)
-    return exact or token or implied
+    return next((item for item in have if normalize_skill(item) == key), None)
+
+
+def _token(wanted: str, have: list[str]) -> str | None:
+    return next((item for item in have if skills_match(wanted, item)), None)
+
+
+def _implied(wanted: str, have: list[str]) -> str | None:
+    return next((item for item in have if implies(item, wanted)), None)
+
+
+def find_match(wanted: str, have: list[str]) -> str | None:
+    """Prefer an exact (normalized) match, then a token match, then an implication.
+
+    An "A or B" job skill is satisfied by its best-matching alternative: an exact match of
+    any alternative beats a token match, which beats an implication.
+    """
+    alternatives = skill_alternatives(wanted)
+    for matcher in (_exact, _token, _implied):
+        for alternative in alternatives:
+            if (found := matcher(alternative, have)) is not None:
+                return found
+    return None
 
 
 def match_skills(wanted: list[str], have: list[str]) -> tuple[list[SkillMatch], list[str]]:
