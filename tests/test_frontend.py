@@ -252,3 +252,36 @@ def test_evidence_parsing_matches_the_scoring_reason_wording() -> None:
     for marker in ('"shown only in projects: "', '"listed without evidence: "', '"missing: "', '" via "',
                    "Required skills|Nice-to-have skills"):
         assert marker in js, marker
+
+
+# ---------- header navigation and evaluation band ----------
+
+REPO_URL = "https://github.com/Khayal07/ai-cv-screening"
+
+
+def test_nav_anchors_point_at_page_sections() -> None:
+    html = read_static("index.html")
+    for anchor in ("how", "eval"):
+        assert f'href="#{anchor}"' in html and f'id="{anchor}"' in html, anchor
+    assert f'href="{REPO_URL}"' in html
+
+
+def test_eval_band_links_to_the_readme_method() -> None:
+    html = read_static("index.html")
+    assert f'href="{REPO_URL}#evaluation"' in html
+    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+    assert "\n## Evaluation\n" in readme
+
+
+def test_eval_band_numbers_match_the_replayed_evaluation() -> None:
+    from app.eval_clients import replay_client
+    from app.evaluation import check_rankings, load_labels, run_case
+
+    labels = load_labels()
+    results = [run_case(case, replay_client(case), labels.today) for case in labels.cases]
+    checks = check_rankings(labels.rankings, results)
+    passed = sum(result.passed for result in results)
+    ranked = sum(check.passed for check in checks)
+    html = read_static("index.html")
+    assert f'id="eval-cases" class="stat-value">{passed} / {len(results)}<' in html
+    assert f'id="eval-rankings" class="stat-value">{ranked} / {len(checks)}<' in html
