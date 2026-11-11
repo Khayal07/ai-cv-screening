@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "731d0e23b80bdf8e62a15f3750c9e2374dc66710dc7acc7799511466e20b7c38",
   "output": {
@@ -13,19 +13,19 @@
         "evidence": true
       },
       {
-        "name": "Tableau",
-        "evidence": false
-      },
-      {
-        "name": "Power BI",
-        "evidence": false
-      },
-      {
         "name": "Python",
         "evidence": false
       },
       {
         "name": "Statistics",
+        "evidence": false
+      },
+      {
+        "name": "Tableau",
+        "evidence": false
+      },
+      {
+        "name": "Power BI",
         "evidence": false
       },
       {

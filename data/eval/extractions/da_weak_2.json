@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "65d400294763e47d8d77463ac720fb09ac0f35f0659baa14e607c5177ae53d9c",
   "output": {
@@ -37,7 +37,9 @@
       {
         "start": "2022",
         "end": "2023",
-        "skills": []
+        "skills": [
+          "Customer service"
+        ]
       }
     ],
     "education_level": "high_school",

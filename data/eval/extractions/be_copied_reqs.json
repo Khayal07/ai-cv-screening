@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "d95b06a38d56560574b9060696f3eae7eb80a0cad8bf197a89df66c2075e10cc",
   "output": {
@@ -23,6 +23,10 @@
       {
         "name": "Docker",
         "evidence": true
+      },
+      {
+        "name": "FastAPI",
+        "evidence": false
       },
       {
         "name": "AWS",

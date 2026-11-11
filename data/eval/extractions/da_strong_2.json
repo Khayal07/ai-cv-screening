@@ -1,7 +1,7 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
-  "input_sha256": "e0584a632234b046e9b60b9a35cf23f8aeed9c3cb26285b146ec75d3ed7fe506",
+  "input_sha256": "f2cae15400048f80335b5d5132d0176bda656e7ab1cdd156443c9c12b67fa566",
   "output": {
     "skills": [
       {
@@ -45,9 +45,9 @@
         "start": "2019-03",
         "end": "2021-08",
         "skills": [
-          "Excel",
+          "SQL",
           "Power BI",
-          "SQL"
+          "Excel"
         ]
       }
     ],

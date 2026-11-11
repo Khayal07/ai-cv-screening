@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "b81d8ded3e90cbce9c2cd7cc2ab8268e349e831cdd87917314035d7b02a0cc74",
   "output": {

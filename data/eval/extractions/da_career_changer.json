@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "646773e7bab013bc52ae4ba684fb9c0821b5e4c03a02fba86aef60741b5d4f08",
   "output": {
@@ -14,7 +14,7 @@
       },
       {
         "name": "Lesson planning",
-        "evidence": false
+        "evidence": true
       },
       {
         "name": "Communication",
@@ -26,7 +26,8 @@
         "start": "2014",
         "end": "present",
         "skills": [
-          "Excel"
+          "Excel",
+          "Lesson planning"
         ]
       },
       {

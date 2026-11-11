@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "c158fe8b7d7ccc76de40460ba0447230b99174baf0256f61f2f58ef33438245d",
   "output": {
@@ -33,27 +33,7 @@
         "evidence": true
       }
     ],
-    "roles": [
-      {
-        "start": "2025",
-        "end": "2026",
-        "skills": [
-          "SQL",
-          "PostgreSQL",
-          "Tableau"
-        ]
-      },
-      {
-        "start": "2024",
-        "end": "2025",
-        "skills": [
-          "Python",
-          "pandas",
-          "Statistics",
-          "Excel"
-        ]
-      }
-    ],
+    "roles": [],
     "education_level": "bachelor",
     "languages": [
       "English",

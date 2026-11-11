@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "f1f6a8e55c02ce981d567ec51bd5bc9b97ce1432d2e673f1324713e89e78e16c",
   "output": {
@@ -66,7 +66,8 @@
         "start": "2019",
         "end": "present",
         "skills": [
-          "Scheduling"
+          "Scheduling",
+          "Customer service"
         ]
       },
       {

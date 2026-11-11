@@ -1,5 +1,5 @@
 {
-  "prompt_version": "v3",
+  "prompt_version": "v4",
   "model": "gpt-4o-mini",
   "input_sha256": "10b7004f9fc561d71f7d01b3f7c31289ca6c37d43f421eda4e5a5c02d4f301fd",
   "output": {
@@ -51,8 +51,8 @@
         ]
       },
       {
-        "start": "YYYY",
-        "end": "YYYY",
+        "start": "",
+        "end": "",
         "skills": [
           "Java",
           "Python"

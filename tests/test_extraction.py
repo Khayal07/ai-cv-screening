@@ -91,7 +91,7 @@ def test_cv_prompt_excludes_personal_data() -> None:
 
 
 def test_prompt_version_is_set() -> None:
-    assert PROMPT_VERSION == "v3"
+    assert PROMPT_VERSION == "v4"
 
 
 @pytest.mark.parametrize("prompt", [CV_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT])
@@ -113,3 +113,23 @@ def test_cv_prompt_asks_for_skill_evidence() -> None:
     assert '{"name": "FastAPI", "evidence": true}' in CV_SYSTEM_PROMPT
     assert '{"name": "Redis", "evidence": false}' in CV_SYSTEM_PROMPT
     assert '"evidence"' not in JOB_SYSTEM_PROMPT
+
+
+def test_cv_prompt_says_projects_are_not_roles() -> None:
+    assert "Projects (university, coursework, personal or open-source)" in CV_SYSTEM_PROMPT
+    assert "never roles" in CV_SYSTEM_PROMPT
+
+
+def test_cv_prompt_excludes_unfinished_degrees() -> None:
+    assert "still in progress or expected in the future is not completed" in CV_SYSTEM_PROMPT
+
+
+def test_cv_prompt_shows_numeric_dates_only() -> None:
+    assert '"2019-03"' in CV_SYSTEM_PROMPT
+    assert '"YYYY-MM"' not in CV_SYSTEM_PROMPT
+    assert "Never output placeholder letters" in CV_SYSTEM_PROMPT
+
+
+def test_job_prompt_keeps_alternatives_together() -> None:
+    assert '"Tableau or Power BI"' in JOB_SYSTEM_PROMPT
+    assert '"FastAPI (or similar framework)" -> "FastAPI"' in JOB_SYSTEM_PROMPT
