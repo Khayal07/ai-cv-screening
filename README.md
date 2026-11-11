@@ -449,6 +449,31 @@ Notes:
 4. Free Spaces also restart without persistent storage, with the same effect on the cache and the daily cap as on
    Render.
 
+### After-deploy checklist
+
+Replace `https://APP` with the service URL. Steps 1-5 make no model calls; step 6 makes up to 2.
+
+1. **Health:** `curl -i https://APP/health` returns 200 `{"status":"ok"}` with `content-security-policy`,
+   `x-content-type-options: nosniff`, `referrer-policy: no-referrer` and `strict-transport-security` headers.
+2. **Docs are off:** `/docs`, `/redoc` and `/openapi.json` each return 404.
+3. **Page:** open `https://APP/` with the browser's developer tools open. The console shows no CSP errors, the
+   favicon and the privacy notice appear, the theme toggle works, and the sample buttons fill the inputs.
+4. **Request size:** a body over 6 MB returns 413:
+   `head -c 7000000 /dev/zero | curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'content-type: application/json' --data-binary @- https://APP/match`.
+5. **Rate limit:** send 6 invalid requests within a minute; the first 5 return 422 (or 503 if the key is missing)
+   and the 6th returns 429 with a `Retry-After` header:
+   `for i in 1 2 3 4 5 6; do curl -s -o /dev/null -w '%{http_code} ' -X POST -H 'content-type: application/json' -d '{"cv_text":"","job_text":""}' https://APP/match; done`.
+   Note that these count toward this IP's limits for the next minute and day.
+6. **One real match:** in the page, pick a sample CV and a sample job and select **Score match**. Expect a score,
+   reasons and the disclaimer. This is up to 2 model calls on a fresh cache; repeating it is free.
+7. **Client IP behind the proxy:** after step 5 has blocked your connection, run one request from a different
+   network (for example a phone on mobile data). It must not get 429. If it does, all visitors share one bucket,
+   and `TRUSTED_PROXY_HOPS` is wrong for this platform (try 2, then check again). Then, still blocked on the
+   first network, add a fake header: `curl -s -o /dev/null -w '%{http_code}\n' -X POST -H 'X-Forwarded-For: 203.0.113.9' -H 'content-type: application/json' -d '{"cv_text":"","job_text":""}' https://APP/match`.
+   It must still return 429. If it does not, the hop count is too high and clients can choose their own IP.
+8. **Logs:** the platform logs show method, path, status and IP only, never CV text.
+9. **Budget:** the OpenAI project has a monthly spend limit, and its usage page shows the calls from step 6.
+
 ## Project layout
 
 ```
