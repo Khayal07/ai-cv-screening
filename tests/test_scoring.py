@@ -489,3 +489,41 @@ def test_languages_do_not_satisfy_technical_skills() -> None:
     matches, missing = match_cv_skills(["Go", "R"], [], ["English", "Romanian"])
     assert matches == []
     assert missing == ["Go", "R"]
+
+
+# ---------- which roles count as relevant experience ----------
+
+
+def relevant(skills: list[str], required: list[str], nice: list[str]) -> bool:
+    from app.models import Role
+    from app.scoring import is_relevant_role
+
+    return is_relevant_role(Role(start="2020", end="2024", skills=skills), required, nice)
+
+
+def test_role_with_one_required_skill_is_relevant() -> None:
+    assert relevant(["Excel"], ["Excel", "SQL"], ["Python"])
+
+
+def test_role_with_one_implied_required_skill_is_relevant() -> None:
+    assert relevant(["Django"], ["Python"], [])
+
+
+def test_role_with_one_nice_to_have_skill_only_is_not_relevant() -> None:
+    assert not relevant(["Excel"], ["SQL", "Tableau"], ["Excel", "Python"])
+
+
+def test_role_with_two_nice_to_have_skills_is_relevant() -> None:
+    assert relevant(["Excel", "Python"], ["SQL", "Tableau"], ["Excel", "Python"])
+
+
+def test_single_skill_job_needs_only_that_skill() -> None:
+    assert relevant(["Python"], [], ["Python"])
+
+
+def test_one_nice_to_have_role_adds_no_experience() -> None:
+    cv = make_cv(skills=used("Excel"), roles=[role(10, "Excel")])
+    job = make_job(required_skills=["SQL"], nice_to_have_skills=["Excel", "Python"], min_years=1)
+    result = score_match(cv, job, today=date(2025, 1, 1))
+    assert component(result, "experience").points == 0
+    assert "0.0 relevant years of 10.0 total" in component(result, "experience").detail

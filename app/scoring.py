@@ -182,13 +182,26 @@ class ExperienceSummary:
     warnings: list[str]
 
 
-def is_relevant_role(role: Role, job_skills: list[str]) -> bool:
-    """A role counts if it used at least one job skill (same token and implication rules)."""
-    return any(find_match(skill, role.skills) is not None for skill in job_skills)
+MIN_JOB_SKILLS_PER_ROLE = 2
 
 
-def summarize_experience(roles: list[Role], job_skills: list[str], today: date) -> ExperienceSummary:
-    """Relevant years come from roles that used a job skill; if the job names none, all count."""
+def is_relevant_role(role: Role, required: list[str], nice_to_have: list[str]) -> bool:
+    """A role counts if it used a required skill, or at least two job skills of any kind.
+
+    One nice-to-have skill alone (say, Excel in a teaching role) is not enough. Matching uses
+    the same token and implication rules as skill scoring.
+    """
+    if any(find_match(skill, role.skills) is not None for skill in required):
+        return True
+    matched = sum(find_match(skill, role.skills) is not None for skill in nice_to_have)
+    return matched >= min(MIN_JOB_SKILLS_PER_ROLE, len(required) + len(nice_to_have))
+
+
+def summarize_experience(
+    roles: list[Role], required: list[str], nice_to_have: list[str], today: date
+) -> ExperienceSummary:
+    """Relevant years come from relevant roles (see is_relevant_role); with no job skills, all count."""
+    job_skills = required + nice_to_have
     dated: list[tuple[Role, Interval]] = []
     unreadable = 0
     for role in roles:
@@ -201,7 +214,9 @@ def summarize_experience(roles: list[Role], job_skills: list[str], today: date) 
         relevant = [interval for _, interval in dated]
         no_skills = 0
     else:
-        relevant = [interval for role, interval in dated if is_relevant_role(role, job_skills)]
+        relevant = [
+            interval for role, interval in dated if is_relevant_role(role, required, nice_to_have)
+        ]
         no_skills = sum(1 for role, _ in dated if not role.skills)
     return ExperienceSummary(
         relevant_years=total_years(relevant),
@@ -222,8 +237,9 @@ def _experience_warnings(unreadable: int, no_skills: int) -> list[str]:
 
 
 def score_match(cv: CVProfile, job: JobRequirements, today: date | None = None) -> MatchResult:
-    job_skills = job.required_skills + job.nice_to_have_skills
-    experience = summarize_experience(cv.roles, job_skills, today or date.today())
+    experience = summarize_experience(
+        cv.roles, job.required_skills, job.nice_to_have_skills, today or date.today()
+    )
     required, req_missing = match_cv_skills(job.required_skills, cv.skills, cv.languages)
     nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills, cv.languages)
     languages, lang_missing = match_skills(job.languages, cv.languages)
