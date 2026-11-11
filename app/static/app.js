@@ -98,7 +98,8 @@
   }
 
   function syncThemeButton() {
-    $("theme-toggle").setAttribute("aria-pressed", String(currentTheme() === "dark"));
+    const next = currentTheme() === "dark" ? "light" : "dark";
+    $("theme-toggle").setAttribute("aria-label", `Switch to ${next} theme`);
   }
 
   function toggleTheme() {
