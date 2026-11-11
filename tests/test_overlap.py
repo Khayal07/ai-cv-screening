@@ -150,7 +150,7 @@ def test_screen_gives_copied_only_skills_zero_credit() -> None:
 
 
 def test_real_cv_sharing_a_few_words_with_the_job_keeps_full_credit() -> None:
-    cv_json = dict(CV_JSON, skills=used("Python", "FastAPI"))
+    cv_json = dict(CV_JSON, skills=used("Python", "FastAPI"), roles=[role(5, "Python", "FastAPI")])
     job_json = dict(JOB_JSON, required_skills=["Python", "FastAPI"])
     result = screen(VALID_CV_TEXT, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
     assert result.reasons[0] == "Required skills: 2 of 2 matched."

@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from app.main import app, get_llm_client
 from app.parsing.anonymize import strip_personal_data
 from app.service import screen
-from tests.conftest import FakeLLMClient, role, used
+from tests.conftest import FakeLLMClient, listed, role, used
 from tests.pdf_factory import text_pdf
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "synthetic"
@@ -23,8 +23,8 @@ PERSONAL_MARKERS: dict[str, list[str]] = {
 
 CANNED_CVS: dict[str, dict[str, Any]] = {
     "cv_backend_senior.txt": {
-        "skills": used("Python", "FastAPI", "Django", "PostgreSQL", "Redis", "Docker",
-                       "Kubernetes", "AWS", "CI/CD"),
+        "skills": used("Python", "FastAPI", "Django", "PostgreSQL", "Docker",
+                       "Kubernetes", "AWS", "CI/CD") + listed("Redis"),
         "roles": [role(3, "Python", "Django", "Docker", "CI/CD", end="2020-06"),
                   role(4, "Python", "FastAPI", "PostgreSQL", "Kubernetes", "AWS")],
         "education_level": "bachelor", "languages": ["English", "German"],
@@ -78,7 +78,7 @@ def test_backend_job_ranks_candidates_sensibly() -> None:
     senior = score_for("cv_backend_senior.txt")
     frontend = score_for("cv_frontend_mid.txt")
     changer = score_for("cv_career_changer.txt")
-    assert senior == 100
+    assert senior == 98  # Redis is only in the skills list: 12.5 of 15 nice-to-have
     assert senior > frontend
     assert senior > changer
 
@@ -96,5 +96,5 @@ def test_pdf_upload_of_synthetic_cv() -> None:
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert response.json()["score"] == 100
+    assert response.json()["score"] == 98
     assert "Thornquist" not in fake.calls[0][1]

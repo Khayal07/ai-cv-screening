@@ -223,7 +223,10 @@ def test_exact_match_preferred_over_token_match() -> None:
 
 
 def test_reason_names_the_cv_skill_behind_each_loose_match() -> None:
-    cv = make_cv(skills=["Python", "SQL query optimisation", "K8s"])
+    cv = make_cv(
+        skills=["Python", "SQL query optimisation", "K8s"],
+        roles=[role(5, "Python", "SQL query optimisation", "K8s")],
+    )
     job = make_job(required_skills=["Python", "SQL", "Kubernetes", "Rust"])
     reason = score_match(cv, job).reasons[0]
     assert reason == (
@@ -331,7 +334,8 @@ def test_listed_only_skill_gets_half_credit() -> None:
 
 def test_all_listed_scores_half_of_all_used() -> None:
     job = make_job(required_skills=["Python", "Docker"], nice_to_have_skills=["Redis"])
-    full = score_match(make_cv(skills=used("Python", "Docker", "Redis")), job).breakdown
+    roles = [role(5, "Python", "Docker", "Redis")]
+    full = score_match(make_cv(skills=used("Python", "Docker", "Redis"), roles=roles), job).breakdown
     half = score_match(make_cv(skills=listed("Python", "Docker", "Redis")), job).breakdown
     assert half[0].points == pytest.approx(full[0].points / 2)
     assert half[1].points == pytest.approx(full[1].points / 2)
@@ -543,7 +547,7 @@ def test_or_skill_splits_into_alternatives() -> None:
 
 @pytest.mark.parametrize("have", ["Tableau", "Power BI"])
 def test_either_alternative_gives_full_credit(have: str) -> None:
-    cv = make_cv(skills=used(have, "SQL"))
+    cv = make_cv(skills=used(have, "SQL"), roles=[role(3, have, "SQL")])
     job = make_job(required_skills=["SQL", "Tableau or Power BI"], nice_to_have_skills=[])
     required = component(score_match(cv, job), "required_skills")
     assert required.ratio == 1.0
@@ -575,3 +579,51 @@ def test_alternatives_keep_one_way_rules() -> None:
 
 def test_role_using_one_alternative_is_relevant() -> None:
     assert relevant(["Power BI"], ["Tableau or Power BI"], [])
+
+
+# ---------- skills shown only in projects ----------
+
+
+def test_skill_used_in_a_role_gets_full_credit() -> None:
+    matches, _ = match_cv_skills(["SQL"], [CVSkill(name="SQL", evidence=True)], None, ["SQL"])
+    assert matches[0].credit == 1.0
+
+
+def test_skill_shown_only_in_projects_gets_three_quarters() -> None:
+    matches, _ = match_cv_skills(["SQL"], [CVSkill(name="SQL", evidence=True)], None, ["Excel"])
+    assert matches[0].project_only is True
+    assert matches[0].credit == 0.75
+
+
+def test_listed_only_credit_is_unchanged_by_roles() -> None:
+    matches, _ = match_cv_skills(["SQL"], [CVSkill(name="SQL")], None, [])
+    assert matches[0].credit == 0.5
+
+
+def test_role_skill_matches_with_implication() -> None:
+    cv_skills = [CVSkill(name="Python", evidence=True)]
+    matches, _ = match_cv_skills(["Python"], cv_skills, None, ["Django"])
+    assert matches[0].project_only is False
+
+
+def test_language_match_is_not_project_only() -> None:
+    matches, _ = match_cv_skills(["Spanish"], [], ["Spanish"], [])
+    assert matches[0].credit == 1.0
+
+
+def test_without_role_information_evidence_keeps_full_credit() -> None:
+    matches, _ = match_cv_skills(["SQL"], [CVSkill(name="SQL", evidence=True)])
+    assert matches[0].credit == 1.0
+
+
+def test_projects_only_cv_scores_lower_and_says_why() -> None:
+    job = make_job(required_skills=["SQL", "Tableau"], nice_to_have_skills=[], min_years=0)
+    worked = make_cv(skills=used("SQL", "Tableau"), roles=[role(2, "SQL", "Tableau")])
+    student = make_cv(skills=used("SQL", "Tableau"), roles=[])
+    worked_req = component(score_match(worked, job), "required_skills")
+    student_req = component(score_match(student, job), "required_skills")
+    assert worked_req.points == 50.0
+    assert student_req.points == 37.5
+    assert student_req.detail == (
+        "Required skills: 2 of 2 matched (shown only in projects: SQL, Tableau)."
+    )

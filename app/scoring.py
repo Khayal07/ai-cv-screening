@@ -79,18 +79,24 @@ TOKEN = re.compile(r"[^\W_]+(?:[.-][^\W_]+)*[+#]*")
 
 
 EVIDENCE_CREDIT = 1.0
+PROJECT_ONLY_CREDIT = 0.75
 LISTED_ONLY_CREDIT = 0.5
 
 
 @dataclass(frozen=True)
 class SkillMatch:
+    """`project_only`: shown in use (projects, coursework) but in no job role."""
+
     wanted: str
     found: str
     evidence: bool = True
+    project_only: bool = False
 
     @property
     def credit(self) -> float:
-        return EVIDENCE_CREDIT if self.evidence else LISTED_ONLY_CREDIT
+        if not self.evidence:
+            return LISTED_ONLY_CREDIT
+        return PROJECT_ONLY_CREDIT if self.project_only else EVIDENCE_CREDIT
 
 
 def normalize_skill(skill: str) -> str:
@@ -179,12 +185,16 @@ def split_matches(wanted: list[str], have: list[str]) -> tuple[list[str], list[s
 
 
 def match_cv_skills(
-    wanted: list[str], cv_skills: list[CVSkill], languages: list[str] | None = None
+    wanted: list[str],
+    cv_skills: list[CVSkill],
+    languages: list[str] | None = None,
+    role_skills: list[str] | None = None,
 ) -> tuple[list[SkillMatch], list[str]]:
     """Like match_skills, but prefer CV skills with evidence (full credit) over listed-only ones.
 
     A job skill that is a spoken language (e.g. a nice-to-have "Spanish") is also matched
-    against the CV's languages; speaking it counts as evidence.
+    against the CV's languages; speaking it counts as evidence. With `role_skills` given,
+    an evidenced skill that no job role used counts as project-only (lower credit).
     """
     evidenced = [skill.name for skill in cv_skills if skill.evidence]
     listed = [skill.name for skill in cv_skills]
@@ -192,7 +202,10 @@ def match_cv_skills(
     missing: list[str] = []
     for item in wanted:
         if (found := find_match(item, evidenced)) is not None:
-            matches.append(SkillMatch(wanted=item, found=found, evidence=True))
+            project_only = role_skills is not None and find_match(item, role_skills) is None
+            matches.append(
+                SkillMatch(wanted=item, found=found, evidence=True, project_only=project_only)
+            )
         elif (found := find_match(item, languages or [])) is not None:
             matches.append(SkillMatch(wanted=item, found=found, evidence=True))
         elif (found := find_match(item, listed)) is not None:
@@ -267,8 +280,13 @@ def score_match(cv: CVProfile, job: JobRequirements, today: date | None = None) 
     experience = summarize_experience(
         cv.roles, job.required_skills, job.nice_to_have_skills, today or date.today()
     )
-    required, req_missing = match_cv_skills(job.required_skills, cv.skills, cv.languages)
-    nice, nice_missing = match_cv_skills(job.nice_to_have_skills, cv.skills, cv.languages)
+    role_skills = [skill for role in cv.roles for skill in role.skills]
+    required, req_missing = match_cv_skills(
+        job.required_skills, cv.skills, cv.languages, role_skills
+    )
+    nice, nice_missing = match_cv_skills(
+        job.nice_to_have_skills, cv.skills, cv.languages, role_skills
+    )
     languages, lang_missing = match_skills(job.languages, cv.languages)
     components = [
         _matches_component(
@@ -317,12 +335,15 @@ def _matches_component(
 def _describe_matches(
     label: str, matches: list[SkillMatch], missing: list[str], total: int
 ) -> str:
-    """Name the CV skill behind each reworded match, and flag skills listed without evidence."""
+    """Name the CV skill behind each reworded match, and flag weaker (lower-credit) matches."""
     notes = [
         f"{match.wanted} via {match.found}"
         for match in matches
         if match.wanted.casefold() != match.found.casefold()
     ]
+    project_only = [match.wanted for match in matches if match.evidence and match.project_only]
+    if project_only:
+        notes.append(f"shown only in projects: {', '.join(project_only)}")
     listed_only = [match.wanted for match in matches if not match.evidence]
     if listed_only:
         notes.append(f"listed without evidence: {', '.join(listed_only)}")

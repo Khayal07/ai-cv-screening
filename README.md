@@ -44,8 +44,15 @@ A small one-way implication map (`IMPLIES` in `app/scoring.py`) lets a specific 
 Component points stay as floats; the final score is rounded once to an integer.
 
 **Evidence.** The extraction marks each CV skill as used (named in a job, project or education entry) or only
-listed (skills section or summary). A skill shown in use earns full credit; a listed-only skill earns half, and the
-reason names it: `listed without evidence: Redis`. A list of keywords therefore cannot reach a high score.
+listed (skills section or summary). Credit per skill:
+
+| How the CV shows the skill                     | Credit | Reason note                       |
+|------------------------------------------------|--------|-----------------------------------|
+| used in a job role                             | 1.0    | (none)                            |
+| used only in projects or coursework, no role   | 0.75   | `shown only in projects: Tableau` |
+| only listed in a skills section or summary     | 0.5    | `listed without evidence: Redis`  |
+
+A list of keywords therefore cannot reach a high score.
 
 **Experience.** Years are computed from the dated roles, not taken from phrases like "5+ years":
 - Dates are `YYYY-MM`, `YYYY` (counted from June) or `present`. An end date in the future counts as today.
