@@ -70,19 +70,28 @@ def mentions_skill(skill: str, lines: list[str]) -> bool:
     return any(contains_sequence(tuple(TOKEN.findall(line.lower())), wanted) for line in lines)
 
 
-def discount_copied_skills(profile: CVProfile, cv_text: str, job_text: str) -> CVProfile:
-    """Skills named only in lines copied from the job count as listed, not as evidence.
+def exclude_copied_skills(
+    profile: CVProfile, cv_text: str, job_text: str
+) -> tuple[CVProfile, list[str]]:
+    """Give zero credit to skills named only in lines copied from the job.
 
-    Lines are never removed; only the evidence flag changes. A skill that also appears in
-    the CV's own lines, or that the CV text never names literally, keeps its evidence.
+    Returns the profile without those skills, plus their names. The CV text is never changed.
+    A skill that also appears in the CV's own lines, or that the CV text never names
+    literally, is kept as extracted.
     """
     copied, own = split_copied_lines(cv_text, job_text)
     if not copied:
-        return profile
-    skills = [
-        skill.model_copy(update={"evidence": False})
-        if skill.evidence and mentions_skill(skill.name, copied) and not mentions_skill(skill.name, own)
-        else skill
+        return profile, []
+    excluded = [
+        skill.name
         for skill in profile.skills
+        if mentions_skill(skill.name, copied) and not mentions_skill(skill.name, own)
     ]
-    return profile.model_copy(update={"skills": skills})
+    kept = [skill for skill in profile.skills if skill.name not in excluded]
+    return profile.model_copy(update={"skills": kept}), excluded
+
+
+def excluded_skills_warning(excluded: list[str]) -> str | None:
+    if not excluded:
+        return None
+    return f"Not counted, named only in text copied from the job: {', '.join(excluded)}."

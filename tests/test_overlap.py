@@ -79,18 +79,22 @@ def test_screen_without_overlap_has_no_warnings() -> None:
     assert result.warnings == []
 
 
-# ---------- skills named only in copied lines lose their evidence ----------
+# ---------- skills named only in copied lines get no credit ----------
 
 from app.models import CVProfile  # noqa: E402
-from app.parsing.overlap import discount_copied_skills, split_copied_lines  # noqa: E402
+from app.parsing.overlap import (  # noqa: E402
+    exclude_copied_skills,
+    excluded_skills_warning,
+    split_copied_lines,
+)
 from tests.conftest import listed  # noqa: E402
 
 BACKEND_JOB = read(DATA_DIR / "jd_backend_engineer.txt")
 PASTED_CV = VALID_CV_TEXT + "\n" + BACKEND_JOB[BACKEND_JOB.index("Requirements") :]
 
 
-def evidence(profile: CVProfile) -> dict[str, bool]:
-    return {skill.name: skill.evidence for skill in profile.skills}
+def names(profile: CVProfile) -> list[str]:
+    return [skill.name for skill in profile.skills]
 
 
 def test_pasted_requirement_lines_are_copied() -> None:
@@ -107,31 +111,48 @@ def test_line_sharing_a_few_words_is_not_copied() -> None:
     assert own == ["Built REST APIs with Python and FastAPI at Example."]
 
 
-def test_skill_named_only_in_copied_lines_counts_as_listed() -> None:
+def test_skills_named_only_in_copied_lines_are_excluded() -> None:
     profile = CVProfile(skills=used("Python", "Kubernetes", "AWS") + listed("Redis"))
-    discounted = discount_copied_skills(profile, PASTED_CV, BACKEND_JOB)
-    assert evidence(discounted) == {
-        "Python": True, "Kubernetes": False, "AWS": False, "Redis": False,
-    }
+    kept, excluded = exclude_copied_skills(profile, PASTED_CV, BACKEND_JOB)
+    assert names(kept) == ["Python"]
+    assert excluded == ["Kubernetes", "AWS", "Redis"]
 
 
-def test_skill_not_named_in_the_text_keeps_evidence() -> None:
+def test_cv_text_is_not_changed() -> None:
+    before = str(PASTED_CV)
+    exclude_copied_skills(CVProfile(skills=used("AWS")), PASTED_CV, BACKEND_JOB)
+    assert PASTED_CV == before
+
+
+def test_skill_not_named_in_the_text_is_kept() -> None:
     profile = CVProfile(skills=used("Terraform"))
-    assert discount_copied_skills(profile, PASTED_CV, BACKEND_JOB) == profile
+    assert exclude_copied_skills(profile, PASTED_CV, BACKEND_JOB) == (profile, [])
 
 
-def test_real_cv_sharing_words_with_the_job_keeps_all_evidence() -> None:
+def test_real_cv_sharing_words_with_the_job_keeps_every_skill() -> None:
     profile = CVProfile(skills=used("Python", "FastAPI", "PostgreSQL", "Docker"))
-    assert discount_copied_skills(profile, VALID_CV_TEXT, BACKEND_JOB) == profile
+    assert exclude_copied_skills(profile, VALID_CV_TEXT, BACKEND_JOB) == (profile, [])
 
 
-def test_screen_discounts_copied_skills_only_when_warning_fires() -> None:
+def test_excluded_skills_warning_names_them() -> None:
+    assert excluded_skills_warning([]) is None
+    assert excluded_skills_warning(["AWS", "Redis"]) == (
+        "Not counted, named only in text copied from the job: AWS, Redis."
+    )
+
+
+def test_screen_gives_copied_only_skills_zero_credit() -> None:
     cv_json = dict(CV_JSON, skills=used("Python", "Kubernetes"))
     job_json = dict(JOB_JSON, required_skills=["Python", "Kubernetes"])
     pasted = screen(PASTED_CV, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
-    own = screen(VALID_CV_TEXT, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
-    assert pasted.reasons[0] == (
-        "Required skills: 2 of 2 matched (listed without evidence: Kubernetes)."
-    )
-    assert own.reasons[0] == "Required skills: 2 of 2 matched."
-    assert own.warnings == [] and pasted.score < own.score
+    assert pasted.reasons[0] == "Required skills: 1 of 2 matched (missing: Kubernetes)."
+    assert pasted.warnings[1] == "Not counted, named only in text copied from the job: Kubernetes."
+
+
+def test_real_cv_sharing_a_few_words_with_the_job_keeps_full_credit() -> None:
+    cv_json = dict(CV_JSON, skills=used("Python", "FastAPI"))
+    job_json = dict(JOB_JSON, required_skills=["Python", "FastAPI"])
+    result = screen(VALID_CV_TEXT, BACKEND_JOB, FakeLLMClient([cv_json, job_json]))
+    assert result.reasons[0] == "Required skills: 2 of 2 matched."
+    assert result.warnings == []
+    assert result.score == 100

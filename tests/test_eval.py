@@ -29,10 +29,6 @@ LABELS = load_labels()
 KNOWN_FAILURES: dict[str, str] = {
     "da_strong_2@jd_data_analyst":
         "78 < 80: v4 job extraction still splits 'Tableau or Power BI' into two skills",
-    "be_copied_reqs@jd_backend_engineer":
-        "80 > 79: skills from the pasted requirements block earn listed-only credit",
-    "da_copied_reqs@jd_data_analyst":
-        "80 > 79: skills from the pasted requirements block earn listed-only credit",
 }
 
 FIXTURE_KEYS = {
@@ -109,10 +105,10 @@ SCORED_OWN_TEXT = [
 def test_real_cvs_lose_no_evidence_to_copy_detection(case: EvalCase) -> None:
     from app.evaluation import JOBS_DIR
     from app.models import CVProfile
-    from app.parsing.overlap import discount_copied_skills
+    from app.parsing.overlap import exclude_copied_skills
 
     fixture = load_fixture(fixture_path(case.cv))
     assert fixture is not None
     profile = CVProfile.model_validate(fixture.output)
     cv_text, job_text = read_text(CVS_DIR / case.cv), read_text(JOBS_DIR / case.job)
-    assert discount_copied_skills(profile, cv_text, job_text) == profile
+    assert exclude_copied_skills(profile, cv_text, job_text) == (profile, [])
