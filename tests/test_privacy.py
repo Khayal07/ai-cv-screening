@@ -97,6 +97,8 @@ def test_not_a_cv_response_does_not_echo_the_text(client_with: object) -> None:
 
 def test_page_shows_the_privacy_notice() -> None:
     html = (APP_DIR / "static" / "index.html").read_text(encoding="utf-8")
-    for text in ("Demo only. Do not upload real CVs.", "sent to OpenAI",
-                 "stores nothing except a cache of the anonymized extraction results"):
-        assert text in html
+    text = re.sub(r"\s+", " ", html)
+    for phrase in ("Demo only.", "Please don't upload real CVs.",
+                   "sent to OpenAI after personal details are removed",
+                   "nothing is stored except the anonymized extraction"):
+        assert phrase in text, phrase

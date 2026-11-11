@@ -95,8 +95,8 @@ A list of keywords therefore cannot reach a high score.
 
 ## Privacy
 
-This is a demo. Do not submit real CVs: use the synthetic samples or a made-up CV. The page says the same above
-the inputs.
+This is a demo. Do not submit real CVs: use the synthetic samples or a made-up CV. The page says the same under
+the Score match button.
 
 - **What is sent out.** The CV text, after anonymization (see [How it works](#how-it-works)), and the job
   description are sent to the OpenAI API for extraction. OpenAI's

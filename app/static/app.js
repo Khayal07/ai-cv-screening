@@ -231,15 +231,25 @@
     }
   }
 
+  // CVs get cards (name + "Synthetic CV"); jobs get compact chips.
+  function sampleButton(kind, sample, actionLabel) {
+    const props = { type: "button", "aria-pressed": "false", "aria-label": `${actionLabel}: ${sample.label}` };
+    if (kind === "cv") {
+      return el("button", { ...props, className: "sample-card" },
+        el("span", { className: "sample-name" }, sample.label),
+        el("span", { className: "sample-kind" }, "Synthetic CV"));
+    }
+    return el("button", { ...props, className: "sample-button" }, sample.label);
+  }
+
   function renderSamples(kind, samples, actionLabel, onPick) {
     if (!Array.isArray(samples) || samples.length === 0) return;
     const buttons = samples.map((sample) => {
-      const button = el("button", {
-        type: "button",
-        className: "sample-button",
-        "aria-label": `${actionLabel}: ${sample.label}`,
-      }, sample.label);
-      button.addEventListener("click", () => onPick(sample));
+      const button = sampleButton(kind, sample, actionLabel);
+      button.addEventListener("click", () => {
+        for (const other of buttons) other.setAttribute("aria-pressed", String(other === button));
+        onPick(sample);
+      });
       return button;
     });
     $(`${kind}-samples`).replaceChildren(...buttons);

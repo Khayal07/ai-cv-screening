@@ -71,19 +71,10 @@
 
   <main class="layout">
     <form id="match-form" class="panel input-panel" novalidate aria-labelledby="inputs-heading">
-      <h2 id="inputs-heading" class="panel-title">Inputs</h2>
-
-      <aside id="privacy-notice" class="privacy-notice" aria-labelledby="privacy-heading">
-        <p id="privacy-heading" class="privacy-title">Demo only. Do not upload real CVs.</p>
-        <ul class="privacy-list">
-          <li>Personal details are removed from the CV, then the text is sent to OpenAI for extraction.</li>
-          <li>The server stores nothing except a cache of the anonymized extraction results.</li>
-          <li>Use the samples or a made-up CV.</li>
-        </ul>
-      </aside>
+      <h2 id="inputs-heading" class="visually-hidden">Match a CV to a job</h2>
 
       <fieldset class="field-group">
-        <legend class="field-label">Candidate CV</legend>
+        <legend class="section-label"><span class="section-num">1</span> · Candidate CV</legend>
 
         <div class="tabs" role="tablist" aria-label="CV input method">
           <button type="button" role="tab" id="tab-pdf" class="tab" aria-selected="true"
@@ -96,14 +87,19 @@
           <label id="dropzone" class="dropzone" for="cv-file">
             <input id="cv-file" class="visually-hidden" type="file" name="cv_file"
                    accept="application/pdf,.pdf" aria-describedby="dropzone-hint">
-            <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
-              <path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/>
-            </svg>
+            <span class="dropzone-badge" aria-hidden="true">
+              <svg class="dropzone-icon" viewBox="0 0 24 24" focusable="false">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+                <path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/>
+              </svg>
+            </span>
             <span class="dropzone-title">Drop a PDF here or <span class="link-like">choose a file</span></span>
-            <span id="dropzone-hint" class="hint">PDF with selectable text, up to 5 MB</span>
+            <span id="dropzone-hint" class="hint">Text-based PDF, up to 5 MB. Scanned images can't be read.</span>
           </label>
           <div id="file-info" class="file-info" hidden>
+            <svg class="icon file-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>
+            </svg>
             <span class="file-meta">
               <span id="file-name" class="file-name"></span>
               <span id="file-size" class="file-size"></span>
@@ -114,36 +110,45 @@
 
         <div id="panel-text" class="tab-panel" role="tabpanel" aria-labelledby="tab-text" hidden>
           <label class="visually-hidden" for="cv-text">CV text</label>
-          <textarea id="cv-text" name="cv_text" rows="12" maxlength="50000"
+          <textarea id="cv-text" name="cv_text" rows="10" maxlength="50000"
                     placeholder="Paste the CV text here" aria-describedby="cv-count"></textarea>
           <p id="cv-count" class="counter" aria-live="off">0 / 50,000</p>
-        </div>
-
-        <div class="samples" id="cv-samples-group" hidden>
-          <p class="samples-label" id="cv-samples-label">Sample CVs</p>
-          <div class="sample-list" id="cv-samples" role="group" aria-labelledby="cv-samples-label"></div>
         </div>
       </fieldset>
 
       <div class="field-group">
-        <label class="field-label" for="job-text">Job description</label>
-        <textarea id="job-text" name="job_text" rows="10" maxlength="50000"
+        <label class="section-label" for="job-text"><span class="section-num">2</span> · Job description</label>
+        <textarea id="job-text" name="job_text" rows="6" maxlength="50000"
                   placeholder="Paste the job description here" aria-describedby="job-count"></textarea>
         <p id="job-count" class="counter" aria-live="off">0 / 50,000</p>
 
-        <div class="samples" id="job-samples-group" hidden>
-          <p class="samples-label" id="job-samples-label">Sample jobs</p>
+        <div class="samples samples-inline" id="job-samples-group" hidden>
+          <p class="samples-label" id="job-samples-label">Try a sample job</p>
           <div class="sample-list" id="job-samples" role="group" aria-labelledby="job-samples-label"></div>
         </div>
+      </div>
+
+      <div class="samples field-group" id="cv-samples-group" hidden>
+        <p class="samples-label" id="cv-samples-label">Try a sample CV</p>
+        <div class="sample-grid" id="cv-samples" role="group" aria-labelledby="cv-samples-label"></div>
       </div>
 
       <div class="form-actions">
         <button type="submit" id="submit" class="button-primary">
           <span class="spinner spinner-small" aria-hidden="true"></span>
           <span class="button-label">Score match</span>
+          <span class="button-arrow" aria-hidden="true">→</span>
         </button>
         <p id="form-error" class="form-error" role="alert" hidden></p>
       </div>
+
+      <p id="privacy-notice" class="privacy-note">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+        <span><strong>Demo only.</strong> Please don't upload real CVs. Text is sent to OpenAI after personal
+          details are removed, and nothing is stored except the anonymized extraction.</span>
+      </p>
     </form>
 
     <section id="results-panel" class="panel results-panel" aria-labelledby="results-heading">

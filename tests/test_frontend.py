@@ -189,3 +189,19 @@ def test_frontend_explains_the_daily_limit() -> None:
     js = read_static("app.js")
     assert "status === 503" in js and '"Daily demo limit"' in js
     assert "dailyLimit" in js
+
+
+def test_form_has_numbered_sections_and_live_counters() -> None:
+    html = read_static("index.html")
+    for hook in ('id="cv-count"', 'id="job-count"', 'id="cv-samples"', 'id="job-samples"',
+                 'class="section-num">1<', 'class="section-num">2<', 'id="privacy-notice"'):
+        assert hook in html, hook
+    js = read_static("app.js")
+    assert 'updateCounter(e.target, "job-count")' in js
+    assert "${count} / 50,000" in js
+
+
+def test_sample_cvs_render_as_cards_with_a_pressed_state() -> None:
+    js = read_static("app.js")
+    assert '"Synthetic CV"' in js and 'className: "sample-card"' in js
+    assert '"aria-pressed"' in js
