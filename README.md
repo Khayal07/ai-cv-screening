@@ -398,6 +398,57 @@ docker build -t cv-screening .
 docker run -p 8000:8000 --env-file .env cv-screening
 ```
 
+The image runs as a non-root user (`appuser`, uid 1000), sets `ENVIRONMENT=production`, listens on `PORT`
+(default 8000), and has a `HEALTHCHECK` on `/health`. It starts one uvicorn worker, because the rate limits and
+the daily cap are counted in memory and in one usage file. With `--env-file .env`, the `ENVIRONMENT` line in
+`.env` (development) overrides the image default, so set it to `production` there to test production mode.
+
+## Deploy
+
+Before the first deploy:
+1. **Set a monthly spend limit for the OpenAI project** whose key you use (OpenAI dashboard: project limits /
+   billing). The app's own limits protect the budget, but the provider limit is the last line of defence.
+2. Use a key that belongs to that project only, so you can revoke it without affecting anything else.
+3. **Never put the key in the repository**, a Dockerfile, `render.yaml` or a build argument. Set it only in the
+   platform's secret settings.
+
+### Render (recommended)
+
+1. Push this repository to GitHub.
+2. In Render: **New > Blueprint**, then pick the repository. Render reads `render.yaml`: a Docker web service on
+   the free plan with a health check on `/health`, `ENVIRONMENT=production`, `TRUSTED_PROXY_HOPS=1`, and the
+   default limits.
+3. When Render asks for `OPENAI_API_KEY` (it is declared with `sync: false`, so it has no value in the file),
+   paste the key. Render stores it as a secret environment variable.
+4. Deploy, then work through the [after-deploy checklist](#after-deploy-checklist).
+
+Notes:
+- Render sets `PORT` itself; the image reads it.
+- The free plan has no persistent disk and sleeps when idle. A restart or redeploy empties the extraction cache
+  and resets the daily usage file, so the daily cap restarts too; per-IP limits also reset. The OpenAI spend
+  limit is what holds across restarts.
+- Keep one instance. Each instance counts its own limits.
+
+### Hugging Face Spaces (alternative)
+
+1. Create a Space with the **Docker** SDK and push this repository to it.
+2. The Space's `README.md` needs this header. Keep it in the Space repository only; the GitHub README stays as it
+   is:
+
+   ```yaml
+   ---
+   title: CV Screening
+   sdk: docker
+   app_port: 8000
+   ---
+   ```
+
+3. In the Space settings, add `OPENAI_API_KEY` as a **secret**, and these as variables:
+   `TRUSTED_PROXY_HOPS=1` and `FRAME_ANCESTORS=https://huggingface.co` (the Space page shows the app in a frame on
+   huggingface.co; with the default `'none'` the frame stays blank).
+4. Free Spaces also restart without persistent storage, with the same effect on the cache and the daily cap as on
+   Render.
+
 ## Project layout
 
 ```
@@ -422,4 +473,6 @@ data/eval/         evaluation CVs, labels.json, recorded extractions
 docs/              README screenshot
 scripts/           run_eval.py
 tests/             unit, API, frontend, end-to-end and evaluation tests
+Dockerfile         production image (non-root, PORT, healthcheck, one worker)
+render.yaml        Render Blueprint
 ```

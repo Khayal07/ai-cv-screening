@@ -1,0 +1,27 @@
+# Render Blueprint: New > Blueprint, pick this repository.
+# OPENAI_API_KEY has no value here on purpose: Render asks for it when the Blueprint is created
+# and stores it as a secret. Never commit the key.
+services:
+  - type: web
+    name: cv-screening
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "5"
+      - key: RATE_LIMIT_PER_DAY
+        value: "30"
+      - key: DAILY_MODEL_CALL_LIMIT
+        value: "100"
+      - key: FRAME_ANCESTORS
+        value: "'none'"
