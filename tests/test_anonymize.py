@@ -169,3 +169,76 @@ def test_phone_next_to_a_date_range_is_still_removed() -> None:
 @pytest.mark.parametrize("phone", ["+1 (555) 010-2233", "+44 7700 900123", "+45 2012 3456"])
 def test_phone_numbers_are_still_removed(phone: str) -> None:
     assert strip_personal_data(f"Call {phone} today") == "Call  today"
+
+
+# ---------- references and signatures ----------
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "References: Jane Doe, Head of Data, Example Ltd (fictional)",
+        "Referee: Dr. Anna Berg",
+        "Referees - Tom Price and Lea Kim",
+        "Reference available from Jane Doe on request",
+        "References available on request.",
+        "- References: Jane Doe",
+        "REFERENCES: JANE DOE",
+    ],
+)
+def test_reference_lines_are_removed(line: str) -> None:
+    text = f"Data Analyst\n{line}\nSkills: SQL"
+    assert strip_personal_data(text) == "Data Analyst\nSkills: SQL"
+
+
+def test_block_under_references_heading_is_removed() -> None:
+    text = (
+        "Skills: Python\n\nReferences\n\nJane Doe\nHead of Data, Example Ltd (fictional)\n"
+        "jane.doe@example.com\n\nLanguages: English"
+    )
+    result = strip_personal_data(text)
+    assert "Jane" not in result and "Head of Data" not in result
+    assert "Skills: Python" in result and "Languages: English" in result
+
+
+def test_reference_block_stops_at_a_section_heading() -> None:
+    text = "Referees:\nTom Price\nEducation\nBSc Mathematics, 2015 - 2018"
+    assert strip_personal_data(text) == "Education\nBSc Mathematics, 2015 - 2018"
+
+
+def test_reference_block_is_capped() -> None:
+    block = "\n".join(f"Line {n} of notes" for n in range(12))
+    result = strip_personal_data(f"Skills: Go\nReferences\n{block}")
+    assert "Line 7 of notes" not in result
+    assert "Line 8 of notes" in result
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Built a reference implementation in Rust for the parser.",
+        "Reference data management for 40 product feeds.",
+        "Referenced in the 2024 engineering report.",
+        "Wrote the referee assignment tool for a sports league (fictional).",
+        "Kind of work: contract, remote.",
+        "Regards for safety rules were part of onboarding.",
+        "Worked with Johnson & Johnson and Smith Partners as clients.",
+    ],
+)
+def test_lines_that_only_mention_references_are_kept(line: str) -> None:
+    assert strip_personal_data(f"Data Analyst\n{line}") == f"Data Analyst\n{line}"
+
+
+@pytest.mark.parametrize("sign_off", ["Kind regards,", "Best regards", "Yours sincerely,", "Sincerely", "Regards,"])
+def test_sign_off_and_signer_name_are_removed(sign_off: str) -> None:
+    text = f"Skills: SQL, Excel\n\n{sign_off}\nJane Doe"
+    assert strip_personal_data(text) == "Skills: SQL, Excel"
+
+
+@pytest.mark.parametrize(
+    "after",
+    ["Python, SQL, Docker", "Example Bank Ltd", "Acme Labs", "Data Analyst", "Available from March 2027."],
+)
+def test_line_after_sign_off_is_kept_when_not_a_name(after: str) -> None:
+    text = f"Skills: SQL\nKind regards,\n{after}"
+    assert strip_personal_data(text) == f"Skills: SQL\n{after}"

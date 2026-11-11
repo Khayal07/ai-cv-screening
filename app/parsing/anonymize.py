@@ -1,4 +1,4 @@
-"""Remove personal data (name, age, gender, photo, contact details) from CV text.
+"""Remove personal data (name, age, gender, photo, contact details, referees) from CV text.
 
 Runs before any text reaches the model, so scoring can never depend on it.
 """
@@ -28,6 +28,31 @@ PRONOUNS = re.compile(r"\b(he/him|she/her|they/them)\b", re.IGNORECASE)
 BIRTH = re.compile(r"\bborn(?:\s+(?:in|on))?\s*:?\s+[^\s,;][^,;\n]*", re.IGNORECASE)
 MIN_PHONE_DIGITS = 9
 
+# "References: Jane Doe", "Referee - J. Smith", "Reference available from ...", "References available on request".
+REFERENCE_LINE = re.compile(
+    r"^[\s\-*•]*(references?|referees?)\b\s*(?:[:\-–]|available\b)", re.IGNORECASE
+)
+# A bare "References" / "Referees:" heading: the block below it names other people.
+REFERENCE_HEADING = re.compile(r"^[\s\-*•]*(references|referees)\s*:?\s*$", re.IGNORECASE)
+MAX_REFERENCE_BLOCK_LINES = 8
+# A whole line that is only a letter sign-off; the next line may be the signer's name.
+SIGN_OFF = re.compile(
+    r"^\s*(?:(?:kind|best|warm|warmest)\s+regards|regards|best\s+wishes|"
+    r"(?:yours\s+)?(?:sincerely|faithfully|truly))\s*[,.!]?\s*$",
+    re.IGNORECASE,
+)
+SECTION_HEADINGS = {
+    "profile", "summary", "experience", "work experience", "professional experience",
+    "employment", "employment history", "education", "skills", "technical skills",
+    "languages", "projects", "certifications", "courses", "interests", "publications",
+    "volunteering", "awards",
+}
+COMPANY_WORDS = {
+    "ltd", "inc", "llc", "gmbh", "corp", "corporation", "company", "co", "group", "plc",
+    "ag", "bank", "university", "college", "labs", "technologies", "solutions", "systems",
+    "partners", "consulting", "studio", "agency", "school", "institute", "fictional",
+}
+
 JOB_TITLE_WORDS = {
     "engineer", "developer", "manager", "analyst", "designer", "intern",
     "consultant", "scientist", "architect", "lead", "specialist", "administrator",
@@ -38,7 +63,8 @@ JOB_TITLE_WORDS = {
 
 
 def strip_personal_data(text: str) -> str:
-    lines = [line for line in text.splitlines() if not LABELLED_LINE.match(line)]
+    lines = _drop_signatures(_drop_references(text.splitlines()))
+    lines = [line for line in lines if not LABELLED_LINE.match(line)]
     lines = _drop_name_header(lines)
     kept = [cleaned for line in lines if (cleaned := _clean_line(line)) is not None]
     return _collapse_blank_lines("\n".join(kept)).strip()
@@ -65,6 +91,57 @@ def _drop_name_header(lines: list[str]) -> list[str]:
                 return lines[:index] + lines[index + 1 :]
             return lines
     return lines
+
+
+def _drop_references(lines: list[str]) -> list[str]:
+    """Remove reference lines and the block under a bare References heading."""
+    kept: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if REFERENCE_HEADING.match(line):
+            index = _end_of_reference_block(lines, index + 1)
+            continue
+        if not REFERENCE_LINE.match(line):
+            kept.append(line)
+        index += 1
+    return kept
+
+
+def _end_of_reference_block(lines: list[str], start: int) -> int:
+    """Index after the block: it ends at a blank line, a section heading, or the line cap."""
+    index = start
+    while index < len(lines) and not lines[index].strip():
+        index += 1
+    end = min(len(lines), index + MAX_REFERENCE_BLOCK_LINES)
+    while index < end and lines[index].strip() and not _is_section_heading(lines[index]):
+        index += 1
+    return index
+
+
+def _is_section_heading(line: str) -> bool:
+    return line.strip().rstrip(":").strip().lower() in SECTION_HEADINGS
+
+
+def _drop_signatures(lines: list[str]) -> list[str]:
+    """Remove sign-off lines, and the next non-blank line when it is a person's name."""
+    kept: list[str] = []
+    after_sign_off = False
+    for line in lines:
+        if SIGN_OFF.match(line):
+            after_sign_off = True
+            continue
+        if after_sign_off and line.strip():
+            after_sign_off = False
+            if _is_signature_name(line.strip()):
+                continue
+        kept.append(line)
+    return kept
+
+
+def _is_signature_name(line: str) -> bool:
+    words = {word.lower().strip(",.()") for word in line.split()}
+    return looks_like_name(line) and not words & COMPANY_WORDS
 
 
 def _clean_line(line: str) -> str | None:

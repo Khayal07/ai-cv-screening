@@ -40,3 +40,12 @@ def test_screen_uses_the_given_date_for_present_roles() -> None:
     early = screen(VALID_CV_TEXT, "Go", FakeLLMClient([present, job]), today=date(2025, 1, 1))
     late = screen(VALID_CV_TEXT, "Go", FakeLLMClient([present, job]), today=date(2028, 1, 1))
     assert early.score < late.score
+
+
+def test_reference_and_signature_names_never_reach_the_model() -> None:
+    cv = VALID_CV_TEXT + "\n\nReferences\nJordan Pike, Team Lead\n\nKind regards,\nMorgan Ellis"
+    fake = FakeLLMClient([CV_JSON, JOB_JSON])
+    screen(cv, "Go developer", fake)
+    cv_prompt = fake.calls[0][1]
+    assert "Jordan" not in cv_prompt and "Pike" not in cv_prompt
+    assert "Morgan" not in cv_prompt and "Ellis" not in cv_prompt

@@ -20,7 +20,7 @@ Job description ─────────────────────�
 
 1. **Parsing.** PDFs are read with `pypdf` as text only, so embedded images such as photos are never processed.
 2. **Document check.** `app/parsing/cv_check.py` rejects text that does not look like a CV, before any model call (HTTP 422 with a list of reasons). It counts dated ranges (`2019 - 2022`, `Jan 2020 - Present`), education words, word count and job-posting phrases (`we are looking for`, `nice to have`, a bare `Requirements:` heading, ...). Text is rejected when it has fewer than 40 words, 3 or more posting phrases, 2 or more posting phrases and no dated ranges, or neither dated ranges nor education details. A job description pasted as the CV is rejected.
-3. **Anonymization.** Before any text leaves the service, `app/parsing/anonymize.py` removes the name, date of birth and age, gender, pronouns, photo references, marital and family details, nationality, and contact details (email, phone, URLs).
+3. **Anonymization.** Before any text leaves the service, `app/parsing/anonymize.py` removes the name, date of birth and age, gender, pronouns, photo references, marital and family details, nationality, and contact details (email, phone, URLs). It also removes referees (`References: ...` lines and the block under a `References` heading) and a signer's name after a sign-off such as `Kind regards,`.
 4. **Extraction.** A language model (OpenAI API, model set by `LLM_MODEL`) turns the CV and the job description into structured data: skills, dated roles with the skills used in each, education level and languages. Years of experience are computed from the role dates in plain Python, not read by the model. The schemas contain no personal fields. Output is validated with Pydantic; invalid output is retried once.
 5. **Scoring.** Plain Python, with no model involved, so the score is reproducible and unit-tested:
 
@@ -84,6 +84,8 @@ A list of keywords therefore cannot reach a high score.
   The reasons and warnings make each of these judgments visible to the reviewer.
 - The document check and the overlap warning are heuristics. They catch pasted postings and keyword lists,
   not every kind of misleading CV.
+- Anonymization is rule-based and conservative: a name in free text without a label, title, reference heading or
+  sign-off (for example "worked with Jane on ...") is not removed.
 - All CVs in this repository are synthetic (`data/synthetic/`). Do not commit real CVs.
 
 ## Cost control
