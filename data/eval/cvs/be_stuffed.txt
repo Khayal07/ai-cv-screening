@@ -1,0 +1,22 @@
+Quinn Harrowgate
+
+Profile
+Organised operations professional with a passion for technology.
+
+Experience
+Operations Coordinator, Larkspur Hotels (fictional), 2019 - present
+- Coordinate staff schedules and supplier orders for three hotels.
+- Prepare monthly occupancy reports for management.
+
+Office Administrator, Bramble & Co (fictional), 2015 - 2019
+- Managed office supplies, travel bookings and the front desk.
+
+Skills
+Python, FastAPI, PostgreSQL, SQL, Docker, Kubernetes, AWS, Redis, CI/CD,
+Microservices, REST APIs, Linux, Scheduling, Customer service
+
+Education
+BSc Business Management, Oakhurst University (fictional), 2015
+
+Languages
+English (fluent)

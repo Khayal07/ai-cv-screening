@@ -1,0 +1,28 @@
+Backend Engineer
+
+Contact: avery.kowalczyk@example.org | linkedin.com/in/example-avery
+
+About me
+Backend engineer who enjoys reliable systems. Five years of Python, plus some Go.
+
+Experience
+Platform Engineer, Tidewater Energy (fictional)
+Sept. 2021 → Present
+- Own the billing API, written in Python with FastAPI and backed by PostgreSQL.
+- Write and review SQL migrations; added partitioning to the largest tables.
+- Deploy with Docker and Helm to a Kubernetes cluster on AWS.
+- Maintain the GitLab CI/CD pipeline.
+
+Backend Developer, Orchid Mobile (fictional)
+Jul. 2019 → Aug. 2021
+- Built Python and Go services for push notifications.
+- Used Docker Compose for local development and PostgreSQL for storage.
+
+Skills
+Python, Go, FastAPI, PostgreSQL, SQL, Docker, Kubernetes, Helm, AWS, GitLab CI
+
+Education
+BEng Computer Engineering, Redcliff University (fictional), 2019
+
+Languages
+English (C1), Polish (native)

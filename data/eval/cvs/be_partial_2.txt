@@ -1,0 +1,25 @@
+Rowan Achterberg
+Date of birth: 1996-08-30
+Gender: Male
+
+Summary
+Java backend developer looking to move into Python. Two and a half years of
+professional experience with Spring Boot services.
+
+Experience
+Backend Developer, Grainstore Logistics (fictional), 2024.05 - present
+- Develop Spring Boot services in Java with a PostgreSQL database.
+- Wrote SQL reports for the warehouse team.
+- Build Docker images and deploy them to a shared Kubernetes cluster.
+
+Intern Developer, Fernhill Bank (fictional), 2023.01 - 2023.12
+- Maintained Java batch jobs and wrote Python scripts for test data.
+
+Skills
+Java, Spring Boot, PostgreSQL, SQL, Docker, Kubernetes, Python, Maven
+
+Education
+BSc Computer Science, Westbrook University (fictional), 2023
+
+Languages
+English (fluent), German (native)

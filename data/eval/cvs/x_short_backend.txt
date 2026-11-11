@@ -1,0 +1,4 @@
+Python backend developer.
+Backend Developer, Example Corp (fictional), 2019 - present.
+FastAPI, PostgreSQL, Docker, Kubernetes, AWS.
+BSc Computer Science, 2019.

@@ -1,0 +1,22 @@
+Jesse Marlowe
+
+Profile
+Python web developer with three years of experience, mostly with Django.
+
+Experience
+Web Developer, Saltmarsh Media (fictional), 2023 - present
+- Build content management features in Python and Django.
+- Write PostgreSQL queries and Django ORM migrations.
+- Package the app with Docker for staging and production servers.
+
+Junior Developer, Brightwell Agency (fictional), 2022 - 2023
+- Fixed bugs in Django sites and wrote unit tests with pytest.
+
+Skills
+Python, Django, PostgreSQL, Docker, HTML, CSS, pytest, Redis
+
+Education
+BSc Information Systems, Kingsmere University (fictional), 2022
+
+Languages
+English

@@ -1,0 +1,22 @@
+Taylor Brennagh
+
+Summary
+iOS developer with five years of experience shipping consumer mobile apps.
+
+Experience
+iOS Developer, Pocketfit (fictional), 2021 - present
+- Build the workout tracking app in Swift and SwiftUI.
+- Integrated Apple HealthKit and in-app purchases.
+
+Mobile Developer, Clearwater Bank (fictional), 2019 - 2021
+- Maintained the banking app in Swift and Objective-C.
+- Added biometric login and push notifications.
+
+Skills
+Swift, SwiftUI, Objective-C, Xcode, Core Data, Firebase
+
+Education
+BSc Software Engineering, Ashgrove University (fictional), 2019
+
+Languages
+English (fluent), Irish (basic)

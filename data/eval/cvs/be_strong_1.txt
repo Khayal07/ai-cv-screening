@@ -1,0 +1,30 @@
+Morgan Ellery
+Email: morgan.ellery@example.com
+Phone: +1 (555) 010-4471
+
+Profile
+Backend engineer with six years of experience building Python services and APIs.
+
+Experience
+Backend Engineer, Harbourline Freight (fictional), 2021 - present
+- Built and maintained REST APIs in Python with FastAPI for shipment tracking.
+- Designed PostgreSQL schemas and rewrote slow SQL queries; cut report time by 70%.
+- Ran services in Docker on Kubernetes (EKS) on AWS.
+- Set up CI/CD pipelines with GitHub Actions.
+
+Software Developer, Cobalt Payments (fictional), 2019 - 2021
+- Wrote Python microservices with FastAPI and PostgreSQL.
+- Containerised the test environment with Docker.
+- Added Redis caching for exchange-rate lookups.
+
+Junior Developer, Pinewood Studio (fictional), 2018 - 2019
+- Maintained internal Python tools and SQL reports.
+
+Skills
+Python, FastAPI, PostgreSQL, SQL, Docker, Kubernetes, AWS, Redis, CI/CD, Git
+
+Education
+BSc Computer Science, Eastbridge University (fictional), 2018
+
+Languages
+English (native), Portuguese (basic)

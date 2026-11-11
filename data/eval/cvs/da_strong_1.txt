@@ -1,0 +1,24 @@
+Elena Marchetti-Wolfe
+Email: elena.mw@example.com
+
+Profile
+Data analyst with three years of experience in retail analytics.
+
+Experience
+Data Analyst, Cornerstone Grocers (fictional), 2023 - present
+- Write SQL queries against the sales warehouse for weekly trading reports.
+- Build and maintain Tableau dashboards used by 40 store managers.
+- Run A/B test analysis with Python (pandas, SciPy) and basic statistics.
+
+Junior Analyst, Fairway Retail Group (fictional), 2022 - 2023
+- Prepared Excel models for stock forecasting with pivot tables and lookups.
+- Cleaned data with SQL and pandas.
+
+Skills
+SQL, Excel, Tableau, Python, pandas, Statistics, A/B testing
+
+Education
+BSc Statistics, Riverside University (fictional), 2022
+
+Languages
+English (fluent), Spanish (intermediate), Italian (native)

@@ -1,0 +1,21 @@
+Harper Quinlan-Diaz
+
+Profile
+Marketing analyst with two years of experience measuring digital campaigns.
+
+Experience
+Marketing Analyst, Sunridge Outdoor (fictional), 2024 - present
+- Track campaign performance in Google Analytics and report results in Excel.
+- Built Excel dashboards with pivot tables for the e-commerce team.
+
+Marketing Assistant, Larch & Pine (fictional), 2023 - 2024
+- Prepared weekly social media metrics in Excel.
+
+Skills
+Excel, Google Analytics, Looker Studio, SQL (beginner), Copywriting
+
+Education
+BA Marketing, Cresthaven University (fictional), 2023
+
+Languages
+English (native)

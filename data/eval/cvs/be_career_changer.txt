@@ -1,0 +1,23 @@
+Mrs. Jordan Pellegrini
+Aged 41, divorced.
+
+Profile
+Chartered accountant retraining as a software developer. Completed a backend
+bootcamp in 2025 and now build small Python tools on freelance contracts.
+
+Experience
+Freelance Python Developer, 2025 - present
+- Build Flask web apps and automation scripts for small accounting firms.
+- Store client data in SQLite and write SQL reports.
+
+Senior Accountant, Ridgeway & Hale (fictional), 2010 - 2024
+
+Skills
+Python, Flask, SQL, SQLite, Git, Excel, Financial reporting
+
+Education
+Backend Development Bootcamp, Codeharbour Academy (fictional), 2025
+BA Accounting and Finance, Gatesfield University (fictional), 2010
+
+Languages
+English (native), Italian (fluent)

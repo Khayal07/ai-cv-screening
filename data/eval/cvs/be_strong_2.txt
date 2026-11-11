@@ -1,0 +1,30 @@
+CURRICULUM VITAE
+Name: Priya Vantongeren
+Age: 35
+Address: 12 Example Street, Springfield
+
+Summary
+Senior Python developer focused on high-traffic backend systems and cloud infrastructure.
+
+Work history
+Senior Backend Developer, Lumen Health Records (fictional)
+03/2018 – present
+- Lead developer of the patient scheduling API (Python, FastAPI).
+- Moved 14 services from virtual machines to Kubernetes; all images built with Docker.
+- Tuned PostgreSQL indexes and SQL queries for a 2 TB database.
+- Introduced Redis for session storage.
+
+Python Developer, Quarry Analytics (fictional)
+09/2015 – 02/2018
+- Built data ingestion services in Python with Flask and PostgreSQL.
+- Maintained Jenkins CI/CD jobs and Docker images.
+
+Skills
+Python, FastAPI, Flask, PostgreSQL, Docker, Kubernetes, Redis, Jenkins, Linux
+
+Education
+MSc Software Engineering, Northfield Institute of Technology (fictional), 2015
+BSc Mathematics, Northfield Institute of Technology (fictional), 2013
+
+Languages
+English (fluent), Dutch (native)

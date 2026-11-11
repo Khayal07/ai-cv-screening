@@ -1,0 +1,26 @@
+Ms. Charlie Whitcombe
+she/her
+
+Profile
+Primary school teacher preparing to move into data analysis. Currently taking an
+online data analytics course in the evenings.
+
+Experience
+Year 5 Teacher, Hawthorn Primary School (fictional), 2014 - present
+- Tracked pupil assessment results in Excel spreadsheets for the school.
+- Led the school's maths curriculum.
+
+Teaching Assistant, Elm Park School (fictional), 2012 - 2014
+
+Courses
+Data Analytics Certificate (in progress), Example Online Academy (fictional), 2026
+- Modules so far: spreadsheets, introduction to SQL.
+
+Skills
+Excel, SQL (course), Lesson planning, Communication
+
+Education
+BA Primary Education, Selsdon University (fictional), 2012
+
+Languages
+English (native)

@@ -1,0 +1,28 @@
+Dr. Kai Andersen-Moyo
+Born 1990, married
+Mobile: +45 2012 3456
+
+Profile
+Business intelligence analyst with five years of reporting experience.
+
+Experience
+BI Analyst, Nordlys Telecom (fictional)
+Sept. 2021 → Present
+- Build Power BI reports on top of SQL Server; wrote the core SQL views.
+- Maintain Excel planning models for the finance team.
+- Automated data refreshes with Python scripts.
+
+Reporting Analyst, Havn Shipping (fictional)
+Mar. 2019 → Aug. 2021
+- Produced monthly KPI packs in Excel and Power BI.
+- Wrote SQL queries to reconcile invoices.
+
+Skills
+SQL, SQL Server, Power BI, Excel, DAX, Python
+
+Education
+MSc Business Analytics, Copenhagen Example School (fictional), 2019
+BSc Economics, Copenhagen Example School (fictional), 2017
+
+Languages
+English (fluent), Danish (native)

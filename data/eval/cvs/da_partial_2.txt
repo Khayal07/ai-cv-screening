@@ -1,0 +1,24 @@
+Robin Szabo-Mensah
+
+Summary
+Finance assistant moving towards data analysis. Strong Excel user, learning
+Power BI.
+
+Experience
+Finance Assistant, Elmstead Housing (fictional)
+From March 2025 until now
+- Maintain budget trackers and variance reports in Excel.
+- Built a first Power BI report for rent arrears.
+
+Accounts Clerk, Whitlock Builders (fictional)
+From June 2024 until February 2025
+- Processed invoices and reconciled accounts in Excel.
+
+Skills
+Excel, Power BI, Sage, VLOOKUP, Pivot tables
+
+Education
+BSc Accounting, Fallowfield University (fictional), 2024
+
+Languages
+English (fluent), Hungarian (native)

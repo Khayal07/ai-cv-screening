@@ -1,0 +1,23 @@
+Jamie Rousseau-Teo
+Third-year student, Economics and Data Science
+
+Profile
+Student looking for a first data analyst role. No professional experience yet.
+
+Projects
+Bike-share demand analysis (university project, 2025 - 2026)
+- Loaded open city data into PostgreSQL and wrote SQL queries for trips per station.
+- Built a Tableau Public dashboard of seasonal demand.
+
+Housing price study (coursework, 2024 - 2025)
+- Cleaned data in Python with pandas and ran regression models (statistics).
+- Summarised results in Excel charts for the final report.
+
+Education
+BSc Economics and Data Science (expected 2026), Elderbrook University (fictional)
+
+Skills
+SQL, PostgreSQL, Tableau, Python, pandas, Excel, Statistics
+
+Languages
+English (fluent), French (native)

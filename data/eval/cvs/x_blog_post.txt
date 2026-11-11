@@ -1,0 +1,15 @@
+How we cut our container build times in half
+
+Last quarter our team noticed that every pull request waited almost twenty
+minutes for Docker images to build. This post explains what we changed.
+
+First, we reordered the Dockerfile so that dependencies are installed before the
+application code is copied. Most commits no longer invalidate the dependency
+layer, so the cache does most of the work.
+
+Second, we moved our Python test suite to run in parallel across four workers.
+The PostgreSQL fixtures now use a template database instead of running all
+migrations for every test.
+
+Finally, we enabled remote build caching in our CI/CD pipeline. Together these
+changes brought the median build from nineteen minutes down to nine.

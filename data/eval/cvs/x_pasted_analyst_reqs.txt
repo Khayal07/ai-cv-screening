@@ -1,0 +1,15 @@
+Riley Fontaine
+Data Analyst
+
+Requirements
+- 1+ year of experience in a data or analytics role
+- SQL
+- Excel
+- A BI tool such as Tableau or Power BI
+- Bachelor's degree
+- English
+
+Nice to have
+- Python (pandas)
+- Statistics
+- Spanish

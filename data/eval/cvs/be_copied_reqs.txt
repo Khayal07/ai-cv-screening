@@ -1,0 +1,32 @@
+Sydney Okafor
+
+Profile
+Backend developer with three years of Python experience.
+
+Experience
+Backend Developer, Greenfield Insurance (fictional), 2023 - present
+- Build internal REST APIs in Python with Django.
+- Maintain the PostgreSQL database and write SQL reports.
+- Use Docker for local development.
+
+Graduate Developer, Thornbury Council (fictional), 2022 - 2023
+- Wrote Python scripts to clean and import data.
+
+Education
+BSc Computer Science, Millbrook University (fictional), 2022
+
+Languages
+English
+
+Requirements
+- 4+ years of professional backend development
+- Strong Python and FastAPI (or similar framework)
+- PostgreSQL and SQL query optimisation
+- Docker and Kubernetes in production
+- Bachelor's degree in Computer Science or a related field
+- Fluent English
+
+Nice to have
+- AWS
+- Redis
+- CI/CD pipeline experience

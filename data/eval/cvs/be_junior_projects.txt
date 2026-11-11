@@ -1,0 +1,27 @@
+Alex Fenwick-Osei
+Student, Computer Science
+Phone: +44 7700 900456
+
+Profile
+Final-year computer science student looking for a first backend role. No
+professional experience yet; strong project portfolio.
+
+Projects
+Library Booking API (university project, 2025 - 2026)
+- Built a REST API in Python with FastAPI and a PostgreSQL database.
+- Wrote SQL migrations and integration tests.
+- Ran the API and database with Docker Compose.
+
+Personal finance tracker (personal project, 2024 - 2025)
+- Python command-line app storing data in SQLite.
+- Set up GitHub Actions CI/CD to run tests on every push.
+
+Education
+BSc Computer Science (expected 2027), Hollowmere University (fictional)
+A-levels: Mathematics, Physics, Computing, 2023
+
+Skills
+Python, FastAPI, PostgreSQL, SQL, Docker, Git, GitHub Actions
+
+Languages
+English (native)

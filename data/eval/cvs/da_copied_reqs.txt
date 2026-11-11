@@ -1,0 +1,31 @@
+Avery Nakamura-Holt
+
+Profile
+Junior analyst with one year of experience in operations reporting.
+
+Experience
+Operations Analyst, Greystone Couriers (fictional), 2025 - present
+- Build delivery performance reports in Excel.
+- Write simple SQL queries against the dispatch database.
+
+Operations Intern, Greystone Couriers (fictional), 2024 - 2025
+- Updated Excel trackers for late deliveries.
+
+Education
+BSc Business Analytics, Harrowfield University (fictional), 2024
+
+Languages
+English
+
+Requirements
+- 1+ year of experience in a data or analytics role
+- SQL
+- Excel
+- A BI tool such as Tableau or Power BI
+- Bachelor's degree
+- English
+
+Nice to have
+- Python (pandas)
+- Statistics
+- Spanish

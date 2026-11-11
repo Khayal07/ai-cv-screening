@@ -1,0 +1,24 @@
+Casey Lindqvist
+Frontend Developer
+casey.lindqvist@example.com
+
+Profile
+Frontend developer with four years of experience building accessible web interfaces.
+
+Experience
+Frontend Developer, Mapleleaf Travel (fictional), 2022 - present
+- Build booking pages in React and TypeScript.
+- Maintain the design system in Storybook; improved accessibility scores.
+
+Junior Frontend Developer, Silverline Events (fictional), 2020 - 2022
+- Built marketing pages with JavaScript, HTML and CSS.
+- Wrote end-to-end tests with Cypress.
+
+Skills
+React, TypeScript, JavaScript, HTML, CSS, Storybook, Cypress, Figma
+
+Education
+BA Interactive Media, Brookhaven College (fictional), 2020
+
+Languages
+English, Swedish

@@ -1,0 +1,23 @@
+Noor Haddad-Klein
+Data Analyst
+
+Profile
+Analyst with two years of experience in marketing and product reporting.
+
+Experience
+Data Analyst, Bluebird Subscriptions (fictional), 2024 - present
+- Query the MySQL product database with SQL to track churn and retention.
+- Publish Tableau dashboards for the product and marketing teams.
+- Use Python and pandas for cohort analysis.
+
+Marketing Analyst, Peachtree Cosmetics (fictional), 2023 - 2024
+- Built campaign reports in Excel and Tableau.
+
+Skills
+SQL, MySQL, Tableau, Excel, Python, pandas, Google Analytics
+
+Education
+BA Economics, Lindenfield University (fictional), 2023
+
+Languages
+English (fluent), Spanish (native), Arabic (conversational)

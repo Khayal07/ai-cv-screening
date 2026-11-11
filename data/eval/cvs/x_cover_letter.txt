@@ -1,0 +1,15 @@
+Dear Hiring Manager,
+
+I am writing to apply for the Data Analyst position advertised on your careers
+page. I graduated from university with a degree in Economics and have spent the
+last two years working with data.
+
+From 2023 to 2025 I worked as a reporting assistant, where I wrote SQL queries,
+kept Excel trackers up to date and built my first dashboards in Tableau. I enjoy
+turning messy data into clear answers, and I would welcome the chance to bring
+that curiosity to your analytics team.
+
+I have attached my CV and would be glad to discuss my application.
+
+Yours sincerely,
+Logan Pemberton
