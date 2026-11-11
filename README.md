@@ -6,9 +6,14 @@ A FastAPI service that compares a CV with a job description and returns an
 > The service does **not** make hiring decisions. It returns a score and reasons only,
 > as decision support for a human reviewer.
 
-![Web interface showing a match score of 90 with breakdown bars, matched and missing skills, reasons and the disclaimer](docs/screenshot.png)
+**Live demo:** <https://cv-screening-lpi1.onrender.com/>. It runs on free hosting, so the first load can take
+30-50 seconds while the server wakes up. It is a demo only: do not upload real CVs. Use the sample CVs or a
+made-up one.
 
-*Web interface with a synthetic CV and job description. The screenshot was taken with a stubbed model client.*
+![Web interface with the privacy notice above the inputs and a result of 72 (strong match): a warning box, score breakdown bars, matched and missing skills, reasons and the disclaimer](docs/screenshot.png)
+
+*Web interface with a synthetic CV and job description. The screenshot was taken locally with a stand-in model
+client, so no real model calls were made.*
 
 ## How it works
 
