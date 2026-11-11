@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 5
     rate_limit_per_day: int = 30
     trusted_proxy_hops: int = 0
+    daily_model_call_limit: int = 100
 
 
 @lru_cache

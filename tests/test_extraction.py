@@ -127,7 +127,7 @@ def test_job_bump_keeps_cv_keys_from_the_shared_v4_salt(tmp_path: Path) -> None:
 def test_app_client_salts_cache_keys_per_prompt(tmp_path: Path) -> None:
     from app.main import _build_client
 
-    client = _build_client("test-key", "test-model", tmp_path)
+    client = _build_client("test-key", "test-model", tmp_path, 100)
     assert isinstance(client, CachedLLMClient)
     assert client.salt_for(CV_SYSTEM_PROMPT) == CV_PROMPT_VERSION
     assert client.salt_for(JOB_SYSTEM_PROMPT) == JOB_PROMPT_VERSION

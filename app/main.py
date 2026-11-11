@@ -12,6 +12,7 @@ from app.config import Settings, get_settings
 from app.extraction import ExtractionError, prompt_version
 from app.llm.cache import CachedLLMClient
 from app.llm.client import LLMClient
+from app.llm.daily_cap import DailyCapLLMClient, DailyLimitReached
 from app.llm.openai_client import OpenAIClient
 from app.models import MatchResult
 from app.parsing.cv_check import NotACVError
@@ -43,16 +44,26 @@ class MatchRequest(BaseModel):
     job_text: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
 
 
+DAILY_LIMIT_MESSAGE = "Daily demo limit reached. Try again after 00:00 UTC."
+
+
 @lru_cache
-def _build_client(api_key: str, model: str, cache_dir: Path) -> LLMClient:
-    inner = OpenAIClient(api_key=api_key, model=model)
-    return CachedLLMClient(inner, cache_dir, key_salt=prompt_version)
+def _build_client(api_key: str, model: str, cache_dir: Path, daily_limit: int) -> LLMClient:
+    """Cache outside the daily cap, so only real provider calls count toward it."""
+    provider = OpenAIClient(api_key=api_key, model=model)
+    capped = DailyCapLLMClient(provider, daily_limit, usage_dir=cache_dir / "usage")
+    return CachedLLMClient(capped, cache_dir, key_salt=prompt_version)
 
 
 def get_llm_client(settings: Annotated[Settings, Depends(get_settings)]) -> LLMClient:
     if not settings.openai_api_key:
         raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured")
-    return _build_client(settings.openai_api_key, settings.llm_model, settings.cache_dir)
+    return _build_client(
+        settings.openai_api_key,
+        settings.llm_model,
+        settings.cache_dir,
+        settings.daily_model_call_limit,
+    )
 
 
 LLMDep = Annotated[LLMClient, Depends(get_llm_client)]
@@ -97,6 +108,15 @@ def handle_extraction_error(_request: Request, _exc: ExtractionError) -> JSONRes
 def handle_not_a_cv(_request: Request, exc: NotACVError) -> JSONResponse:
     return JSONResponse(
         status_code=422, content={"detail": "does not look like a CV", "reasons": exc.reasons}
+    )
+
+
+@app.exception_handler(DailyLimitReached)
+def handle_daily_limit(_request: Request, exc: DailyLimitReached) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={"detail": DAILY_LIMIT_MESSAGE},
+        headers={"Retry-After": str(exc.retry_after)},
     )
 
 

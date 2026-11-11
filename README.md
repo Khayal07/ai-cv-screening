@@ -97,6 +97,10 @@ A list of keywords therefore cannot reach a high score.
   The counts live in memory, so run one worker per instance. Behind a proxy, set `TRUSTED_PROXY_HOPS` to the number
   of proxies: the client IP is that many entries from the right of `X-Forwarded-For`, so entries a client adds on
   the left are ignored.
+- A global cap, `DAILY_MODEL_CALL_LIMIT` (default 100), limits real model calls per UTC day for all clients together.
+  It sits inside the cache, so cache hits do not count; failed calls and retries do. The count is kept in
+  `CACHE_DIR/usage/YYYY-MM-DD.json`, so a restart does not reset it. When the cap is reached, matches return 503
+  until 00:00 UTC. A match makes at most 2 calls (plus 1 retry each on invalid output).
 
 ## Setup
 
@@ -116,6 +120,7 @@ cp .env.example .env               # then set OPENAI_API_KEY
 | `CACHE_DIR`      | `.cache/llm`  | Disk cache for model responses  |
 | `RATE_LIMIT_PER_MINUTE` | `5`    | Match requests per client IP per minute (0 = off) |
 | `RATE_LIMIT_PER_DAY`    | `30`   | Match requests per client IP per rolling 24 hours (0 = off) |
+| `DAILY_MODEL_CALL_LIMIT` | `100` | Real model calls per UTC day across all clients; cache hits are free (0 = no calls) |
 | `TRUSTED_PROXY_HOPS`    | `0`    | Proxies in front of the app; the client IP is read from `X-Forwarded-For` only when this is above 0 |
 
 ## Run
@@ -231,7 +236,7 @@ A pasted job description is rejected before any model call:
 | 422    | invalid input, invalid PDF, `no extractable text` (scanned), or `does not look like a CV` (with `reasons`) |
 | 429    | too many match requests from this client; `Retry-After` gives the wait in seconds |
 | 502    | model output still invalid after one retry, or provider error    |
-| 503    | `OPENAI_API_KEY` not configured                                  |
+| 503    | `OPENAI_API_KEY` not configured, or the daily model call cap is reached (`Retry-After` until 00:00 UTC) |
 
 ## Tests
 

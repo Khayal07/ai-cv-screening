@@ -183,3 +183,9 @@ def test_frontend_explains_rate_limits() -> None:
     js = read_static("app.js")
     assert "429:" in js and "status === 429" in js
     assert '"Too many requests."' in js
+
+
+def test_frontend_explains_the_daily_limit() -> None:
+    js = read_static("app.js")
+    assert "status === 503" in js and '"Daily demo limit"' in js
+    assert "dailyLimit" in js

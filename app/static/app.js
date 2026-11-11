@@ -56,6 +56,10 @@
       title: "Scoring is not configured",
       message: "The server has no API key. Set OPENAI_API_KEY in .env and restart the server.",
     },
+    dailyLimit: {
+      title: "The demo has reached today's limit",
+      message: "This demo can make a limited number of model calls per day. Try again after 00:00 UTC.",
+    },
     network: {
       title: "Could not reach the server",
       message: "Check that the server is running and your connection works, then try again.",
@@ -275,6 +279,9 @@
       return ERRORS.validation;
     }
     if (status === 429) return rateLimitError(detail);
+    if (status === 503 && typeof detail === "string" && detail.startsWith("Daily demo limit")) {
+      return ERRORS.dailyLimit;
+    }
     return ERRORS[status] || {
       title: "Scoring failed",
       message: `The server responded with status ${status}. Try again.`,
