@@ -1,0 +1,65 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "4691936321ab6de79f7f3fd63ebb60aa7d792c66513f5b0b92581069325ad469",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "Django",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "HTML",
+        "evidence": false
+      },
+      {
+        "name": "CSS",
+        "evidence": false
+      },
+      {
+        "name": "pytest",
+        "evidence": true
+      },
+      {
+        "name": "Redis",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2023",
+        "end": "present",
+        "skills": [
+          "Python",
+          "Django",
+          "PostgreSQL",
+          "Docker"
+        ]
+      },
+      {
+        "start": "2022",
+        "end": "2023",
+        "skills": [
+          "Django",
+          "pytest"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

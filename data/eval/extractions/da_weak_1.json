@@ -1,0 +1,51 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "e84e506040deda8ac40c88ba09af0ced6d8196eb6e1b16fe1b6905ac66cbc41a",
+  "output": {
+    "skills": [
+      {
+        "name": "Adobe Illustrator",
+        "evidence": true
+      },
+      {
+        "name": "Photoshop",
+        "evidence": true
+      },
+      {
+        "name": "InDesign",
+        "evidence": true
+      },
+      {
+        "name": "Figma",
+        "evidence": false
+      },
+      {
+        "name": "Typography",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2022",
+        "end": "present",
+        "skills": [
+          "Adobe Illustrator",
+          "InDesign"
+        ]
+      },
+      {
+        "start": "2020",
+        "end": "2022",
+        "skills": [
+          "Photoshop"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Spanish"
+    ]
+  }
+}

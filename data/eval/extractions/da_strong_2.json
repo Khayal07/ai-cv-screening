@@ -1,0 +1,60 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "e0584a632234b046e9b60b9a35cf23f8aeed9c3cb26285b146ec75d3ed7fe506",
+  "output": {
+    "skills": [
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "SQL Server",
+        "evidence": true
+      },
+      {
+        "name": "Power BI",
+        "evidence": true
+      },
+      {
+        "name": "Excel",
+        "evidence": true
+      },
+      {
+        "name": "DAX",
+        "evidence": false
+      },
+      {
+        "name": "Python",
+        "evidence": true
+      }
+    ],
+    "roles": [
+      {
+        "start": "2021-09",
+        "end": "present",
+        "skills": [
+          "SQL",
+          "SQL Server",
+          "Power BI",
+          "Excel",
+          "Python"
+        ]
+      },
+      {
+        "start": "2019-03",
+        "end": "2021-08",
+        "skills": [
+          "Excel",
+          "Power BI",
+          "SQL"
+        ]
+      }
+    ],
+    "education_level": "master",
+    "languages": [
+      "English",
+      "Danish"
+    ]
+  }
+}

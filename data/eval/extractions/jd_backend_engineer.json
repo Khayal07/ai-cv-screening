@@ -1,0 +1,25 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "435528cefcff98945084a1f0964daaaf362f2addbf86a3645be0b80715077d37",
+  "output": {
+    "required_skills": [
+      "Python",
+      "FastAPI",
+      "PostgreSQL",
+      "SQL",
+      "Docker",
+      "Kubernetes"
+    ],
+    "nice_to_have_skills": [
+      "AWS",
+      "Redis",
+      "CI/CD"
+    ],
+    "min_years": 4,
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

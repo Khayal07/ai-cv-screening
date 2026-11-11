@@ -1,0 +1,85 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "f1f6a8e55c02ce981d567ec51bd5bc9b97ce1432d2e673f1324713e89e78e16c",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": false
+      },
+      {
+        "name": "FastAPI",
+        "evidence": false
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": false
+      },
+      {
+        "name": "SQL",
+        "evidence": false
+      },
+      {
+        "name": "Docker",
+        "evidence": false
+      },
+      {
+        "name": "Kubernetes",
+        "evidence": false
+      },
+      {
+        "name": "AWS",
+        "evidence": false
+      },
+      {
+        "name": "Redis",
+        "evidence": false
+      },
+      {
+        "name": "CI/CD",
+        "evidence": false
+      },
+      {
+        "name": "Microservices",
+        "evidence": false
+      },
+      {
+        "name": "REST",
+        "evidence": false
+      },
+      {
+        "name": "Linux",
+        "evidence": false
+      },
+      {
+        "name": "Scheduling",
+        "evidence": true
+      },
+      {
+        "name": "Customer service",
+        "evidence": true
+      }
+    ],
+    "roles": [
+      {
+        "start": "2019",
+        "end": "present",
+        "skills": [
+          "Scheduling"
+        ]
+      },
+      {
+        "start": "2015",
+        "end": "2019",
+        "skills": [
+          "Customer service"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "10b7004f9fc561d71f7d01b3f7c31289ca6c37d43f421eda4e5a5c02d4f301fd",
+  "output": {
+    "skills": [
+      {
+        "name": "Java",
+        "evidence": true
+      },
+      {
+        "name": "Spring Boot",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "Kubernetes",
+        "evidence": true
+      },
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "Maven",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2024-05",
+        "end": "present",
+        "skills": [
+          "Java",
+          "Spring Boot",
+          "PostgreSQL",
+          "SQL",
+          "Docker",
+          "Kubernetes"
+        ]
+      },
+      {
+        "start": "YYYY",
+        "end": "YYYY",
+        "skills": [
+          "Java",
+          "Python"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "German"
+    ]
+  }
+}

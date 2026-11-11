@@ -1,0 +1,49 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "65d400294763e47d8d77463ac720fb09ac0f35f0659baa14e607c5177ae53d9c",
+  "output": {
+    "skills": [
+      {
+        "name": "Zendesk",
+        "evidence": true
+      },
+      {
+        "name": "Customer service",
+        "evidence": true
+      },
+      {
+        "name": "Microsoft Office",
+        "evidence": false
+      },
+      {
+        "name": "Excel",
+        "evidence": false
+      },
+      {
+        "name": "Typing",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2023",
+        "end": "present",
+        "skills": [
+          "Zendesk",
+          "Customer service"
+        ]
+      },
+      {
+        "start": "2022",
+        "end": "2023",
+        "skills": []
+      }
+    ],
+    "education_level": "high_school",
+    "languages": [
+      "English",
+      "Polish"
+    ]
+  }
+}

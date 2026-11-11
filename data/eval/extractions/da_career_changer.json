@@ -1,0 +1,43 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "646773e7bab013bc52ae4ba684fb9c0821b5e4c03a02fba86aef60741b5d4f08",
+  "output": {
+    "skills": [
+      {
+        "name": "Excel",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": false
+      },
+      {
+        "name": "Lesson planning",
+        "evidence": false
+      },
+      {
+        "name": "Communication",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2014",
+        "end": "present",
+        "skills": [
+          "Excel"
+        ]
+      },
+      {
+        "start": "2012",
+        "end": "2014",
+        "skills": []
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

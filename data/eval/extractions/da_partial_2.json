@@ -1,0 +1,51 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "85497c4d79c98bff57603960d243ca465f380196394a5bf0e6c4ccb6556ecc97",
+  "output": {
+    "skills": [
+      {
+        "name": "Excel",
+        "evidence": true
+      },
+      {
+        "name": "Power BI",
+        "evidence": true
+      },
+      {
+        "name": "Sage",
+        "evidence": false
+      },
+      {
+        "name": "VLOOKUP",
+        "evidence": false
+      },
+      {
+        "name": "Pivot tables",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2025-03",
+        "end": "present",
+        "skills": [
+          "Excel",
+          "Power BI"
+        ]
+      },
+      {
+        "start": "2024-06",
+        "end": "2025-02",
+        "skills": [
+          "Excel"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Hungarian"
+    ]
+  }
+}

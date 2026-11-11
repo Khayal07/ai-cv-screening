@@ -1,0 +1,56 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "74467c183de7d79c93b9c2240ade8b83421e6f68ab08b4afe90027b11fb56046",
+  "output": {
+    "skills": [
+      {
+        "name": "Swift",
+        "evidence": true
+      },
+      {
+        "name": "SwiftUI",
+        "evidence": true
+      },
+      {
+        "name": "Objective-C",
+        "evidence": true
+      },
+      {
+        "name": "Xcode",
+        "evidence": false
+      },
+      {
+        "name": "Core Data",
+        "evidence": false
+      },
+      {
+        "name": "Firebase",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2021",
+        "end": "present",
+        "skills": [
+          "Swift",
+          "SwiftUI"
+        ]
+      },
+      {
+        "start": "2019",
+        "end": "2021",
+        "skills": [
+          "Swift",
+          "Objective-C"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Irish"
+    ]
+  }
+}

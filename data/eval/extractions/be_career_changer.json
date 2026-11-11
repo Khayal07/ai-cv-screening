@@ -1,0 +1,59 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "f8ee4262f75fd07c50e944331a4a45482ddb4e12926b48bbcaa6ffca8a4a4e8b",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "Flask",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "SQLite",
+        "evidence": true
+      },
+      {
+        "name": "Git",
+        "evidence": false
+      },
+      {
+        "name": "Excel",
+        "evidence": false
+      },
+      {
+        "name": "Financial reporting",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2025",
+        "end": "present",
+        "skills": [
+          "Python",
+          "Flask",
+          "SQL",
+          "SQLite"
+        ]
+      },
+      {
+        "start": "2010",
+        "end": "2024",
+        "skills": []
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Italian"
+    ]
+  }
+}

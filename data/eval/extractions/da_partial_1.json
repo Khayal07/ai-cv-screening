@@ -1,0 +1,50 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "224630f10055ee6dfa40511996df32e6abf80323d8d159a2a850ef7e225cc7dc",
+  "output": {
+    "skills": [
+      {
+        "name": "Excel",
+        "evidence": true
+      },
+      {
+        "name": "Google Analytics",
+        "evidence": true
+      },
+      {
+        "name": "Looker Studio",
+        "evidence": false
+      },
+      {
+        "name": "SQL",
+        "evidence": false
+      },
+      {
+        "name": "Copywriting",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2024",
+        "end": "present",
+        "skills": [
+          "Excel",
+          "Google Analytics"
+        ]
+      },
+      {
+        "start": "2023",
+        "end": "2024",
+        "skills": [
+          "Excel"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

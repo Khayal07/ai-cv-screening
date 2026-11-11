@@ -1,0 +1,68 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "4c6408677ccd20cdd66022276ece34911f2efeea72df063577e016f8656a64d5",
+  "output": {
+    "skills": [
+      {
+        "name": "SQL",
+        "evidence": false
+      },
+      {
+        "name": "Excel",
+        "evidence": false
+      },
+      {
+        "name": "Tableau",
+        "evidence": false
+      },
+      {
+        "name": "Power BI",
+        "evidence": false
+      },
+      {
+        "name": "Python",
+        "evidence": false
+      },
+      {
+        "name": "pandas",
+        "evidence": false
+      },
+      {
+        "name": "Statistics",
+        "evidence": false
+      },
+      {
+        "name": "Data visualisation",
+        "evidence": false
+      },
+      {
+        "name": "Customer service",
+        "evidence": true
+      },
+      {
+        "name": "Visual merchandising",
+        "evidence": true
+      }
+    ],
+    "roles": [
+      {
+        "start": "2021",
+        "end": "present",
+        "skills": [
+          "Customer service",
+          "Visual merchandising"
+        ]
+      },
+      {
+        "start": "2019",
+        "end": "2021",
+        "skills": []
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

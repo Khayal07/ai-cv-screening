@@ -1,0 +1,67 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "a1b20dcd5a5c20db5bd311f70544367fca34c508a61bb6ee27fb049dc4a06857",
+  "output": {
+    "skills": [
+      {
+        "name": "React",
+        "evidence": true
+      },
+      {
+        "name": "TypeScript",
+        "evidence": true
+      },
+      {
+        "name": "JavaScript",
+        "evidence": true
+      },
+      {
+        "name": "HTML",
+        "evidence": true
+      },
+      {
+        "name": "CSS",
+        "evidence": true
+      },
+      {
+        "name": "Storybook",
+        "evidence": true
+      },
+      {
+        "name": "Cypress",
+        "evidence": true
+      },
+      {
+        "name": "Figma",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2022",
+        "end": "present",
+        "skills": [
+          "React",
+          "TypeScript",
+          "Storybook"
+        ]
+      },
+      {
+        "start": "2020",
+        "end": "2022",
+        "skills": [
+          "JavaScript",
+          "HTML",
+          "CSS",
+          "Cypress"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Swedish"
+    ]
+  }
+}

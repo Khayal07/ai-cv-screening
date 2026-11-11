@@ -1,0 +1,81 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "556b9f0c09f7f1f871e6e5c0f3bf0ea20a18c660ba43beaaef1cc0f58229aa2a",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "Go",
+        "evidence": true
+      },
+      {
+        "name": "FastAPI",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "Kubernetes",
+        "evidence": true
+      },
+      {
+        "name": "Helm",
+        "evidence": true
+      },
+      {
+        "name": "AWS",
+        "evidence": true
+      },
+      {
+        "name": "GitLab CI",
+        "evidence": true
+      }
+    ],
+    "roles": [
+      {
+        "start": "2021-09",
+        "end": "present",
+        "skills": [
+          "Python",
+          "FastAPI",
+          "PostgreSQL",
+          "SQL",
+          "Docker",
+          "Helm",
+          "Kubernetes",
+          "AWS",
+          "GitLab CI"
+        ]
+      },
+      {
+        "start": "2019-07",
+        "end": "2021-08",
+        "skills": [
+          "Python",
+          "Go",
+          "Docker",
+          "PostgreSQL"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Polish"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "161e681fd3862e86f5dbdf3e6b2b09c0d9687630eb4f248b73dc862b0542852e",
+  "output": {
+    "skills": [
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "MySQL",
+        "evidence": true
+      },
+      {
+        "name": "Tableau",
+        "evidence": true
+      },
+      {
+        "name": "Excel",
+        "evidence": true
+      },
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "pandas",
+        "evidence": true
+      },
+      {
+        "name": "Google Analytics",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2024",
+        "end": "present",
+        "skills": [
+          "SQL",
+          "MySQL",
+          "Tableau",
+          "Python",
+          "pandas"
+        ]
+      },
+      {
+        "start": "2023",
+        "end": "2024",
+        "skills": [
+          "Excel",
+          "Tableau"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Spanish",
+      "Arabic"
+    ]
+  }
+}

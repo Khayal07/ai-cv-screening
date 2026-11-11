@@ -1,0 +1,64 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "69d55c25ce8f9d13aafa140745f08d7567e5363feb61f575f4465b5dfac08d9b",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "FastAPI",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "Git",
+        "evidence": false
+      },
+      {
+        "name": "GitHub Actions",
+        "evidence": true
+      }
+    ],
+    "roles": [
+      {
+        "start": "2025",
+        "end": "2026",
+        "skills": [
+          "REST",
+          "Python",
+          "FastAPI",
+          "PostgreSQL",
+          "SQL",
+          "Docker"
+        ]
+      },
+      {
+        "start": "2024",
+        "end": "2025",
+        "skills": [
+          "Python",
+          "SQLite",
+          "GitHub Actions"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English"
+    ]
+  }
+}

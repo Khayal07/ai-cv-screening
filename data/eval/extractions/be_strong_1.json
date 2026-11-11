@@ -1,0 +1,89 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "bc271fee9ceb8822e668c0973212ecc5dfe75df398336e6f6675fa6e70692a83",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "FastAPI",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "SQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "Kubernetes",
+        "evidence": true
+      },
+      {
+        "name": "AWS",
+        "evidence": true
+      },
+      {
+        "name": "Redis",
+        "evidence": true
+      },
+      {
+        "name": "CI/CD",
+        "evidence": true
+      },
+      {
+        "name": "Git",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2021",
+        "end": "present",
+        "skills": [
+          "Python",
+          "FastAPI",
+          "PostgreSQL",
+          "SQL",
+          "Docker",
+          "Kubernetes",
+          "AWS",
+          "CI/CD"
+        ]
+      },
+      {
+        "start": "2019",
+        "end": "2021",
+        "skills": [
+          "Python",
+          "FastAPI",
+          "PostgreSQL",
+          "Docker",
+          "Redis"
+        ]
+      },
+      {
+        "start": "2018",
+        "end": "2019",
+        "skills": [
+          "Python",
+          "SQL"
+        ]
+      }
+    ],
+    "education_level": "bachelor",
+    "languages": [
+      "English",
+      "Portuguese"
+    ]
+  }
+}

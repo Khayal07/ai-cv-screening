@@ -1,0 +1,75 @@
+{
+  "prompt_version": "v3",
+  "model": "gpt-4o-mini",
+  "input_sha256": "596092cd6a84bbc5b093fd4c3966ad9d401ec602725be8a068f47f272d6479b0",
+  "output": {
+    "skills": [
+      {
+        "name": "Python",
+        "evidence": true
+      },
+      {
+        "name": "FastAPI",
+        "evidence": true
+      },
+      {
+        "name": "Flask",
+        "evidence": true
+      },
+      {
+        "name": "PostgreSQL",
+        "evidence": true
+      },
+      {
+        "name": "Docker",
+        "evidence": true
+      },
+      {
+        "name": "Kubernetes",
+        "evidence": true
+      },
+      {
+        "name": "Redis",
+        "evidence": true
+      },
+      {
+        "name": "Jenkins",
+        "evidence": true
+      },
+      {
+        "name": "Linux",
+        "evidence": false
+      }
+    ],
+    "roles": [
+      {
+        "start": "2018-03",
+        "end": "present",
+        "skills": [
+          "Python",
+          "FastAPI",
+          "Kubernetes",
+          "Docker",
+          "PostgreSQL",
+          "Redis"
+        ]
+      },
+      {
+        "start": "2015-09",
+        "end": "2018-02",
+        "skills": [
+          "Python",
+          "Flask",
+          "PostgreSQL",
+          "Docker",
+          "Jenkins"
+        ]
+      }
+    ],
+    "education_level": "master",
+    "languages": [
+      "English",
+      "Dutch"
+    ]
+  }
+}
