@@ -41,6 +41,9 @@ or `Objective-C`. When the CV wording differs, the reason names it, for example 
 A small one-way implication map (`IMPLIES` in `app/scoring.py`) lets a specific CV skill satisfy a general job skill:
 `PostgreSQL → SQL`, `FastAPI → Python`, `React → JavaScript`. It never works in reverse (CV `SQL` does not satisfy job
 `PostgreSQL`) and never chains (`Next.js` satisfies `React`, not `JavaScript`). The reason reads `SQL via PostgreSQL`.
+An either-or requirement such as `Tableau or Power BI` is one job skill, satisfied by its best-matching
+alternative (`Tableau or Power BI via Tableau`). A job skill that is a spoken language (a nice-to-have `Spanish`)
+is also matched against the CV's languages.
 Component points stay as floats; the final score is rounded once to an integer.
 
 **Evidence.** The extraction marks each CV skill as used (named in a job, project or education entry) or only
@@ -57,14 +60,17 @@ A list of keywords therefore cannot reach a high score.
 **Experience.** Years are computed from the dated roles, not taken from phrases like "5+ years":
 - Dates are `YYYY-MM`, `YYYY` (counted from June) or `present`. An end date in the future counts as today.
 - Overlapping roles are merged, so parallel jobs are not counted twice.
-- A role is relevant when it used at least one of the job's skills, with the same token and implication rules as
-  skill matching. Only relevant years count toward the minimum. If the job names no skills, every role counts.
+- A role is relevant when it used at least one required skill, or at least two of the job's skills, with the same
+  token and implication rules as skill matching. Only relevant years count toward the minimum. If the job names no
+  skills, every role counts.
+- Projects and coursework are not roles: they add skill evidence but no years.
 - The reason shows both numbers: `Experience: 3.5 relevant years of 5.0 total (required 4).`
 
 **Warnings.** Some findings do not change the score but should be checked by the reviewer. They are returned in
 `warnings` and shown above the breakdown:
 - the CV shares at least 25% of its word sequences (word 3-grams) with the job description, which suggests text was
-  copied from the posting (`app/parsing/overlap.py`; the highest value among the synthetic CV-job pairs is 6.7%)
+  copied from the posting (`app/parsing/overlap.py`; the highest value among the synthetic CV-job pairs is 6.7%).
+  When this fires, skills that appear only in copied lines get no credit, and a second warning names them
 - roles with no listed skills, which are not counted as relevant experience
 - roles with unreadable dates, which are ignored
 
@@ -225,6 +231,115 @@ pytest
 
 Tests use a fake model client and block all external network access, so they cost nothing and run offline.
 
+## Evaluation
+
+`data/eval/` holds 28 synthetic CVs and `labels.json`: 34 labeled cases scored against the two sample job
+descriptions (`data/synthetic/jd_backend_engineer.txt`, `jd_data_analyst.txt`).
+
+**Method**
+- **Labels first.** The CVs and every expected outcome (score range or 422 rejection, plus expected warnings) were
+  committed before any model output existed. Each category has a default band: strong 80-100, partial 50-79,
+  weak 0-45, junior with projects only 25-65, career changer 15-55, keyword stuffing 25-49. A case may narrow its
+  band but never widen it, and no label was changed to make a case pass.
+- **Ranking rules, per job.** Every strong CV must beat every partial one. Every partial CV must beat every weak
+  or keyword-stuffed one. Every strong CV must beat the strong CVs written for the other job (`cross_job`).
+- **Recorded once.** Real extractions were recorded with `--real --record` into `data/eval/extractions/`. Each
+  file stores only the model output, the prompt version and a hash of the input: no CV text and no personal data.
+- **Fixed date.** `labels.json` sets `today` to 2026-11-01, so roles that run to "present" do not drift.
+- **Replay with 0 calls.** `tests/test_eval.py` and the script replay the recordings through the full pipeline
+  (document check, anonymization, extraction validation, scoring). A recording whose prompt version or input
+  text has changed is reported as stale instead of being used silently.
+
+**How to rerun**
+
+```bash
+python scripts/run_eval.py                                  # replay, 0 model calls
+python scripts/run_eval.py --markdown                       # the table below
+python scripts/run_eval.py --real --max-calls 40            # real model, through the disk cache
+python scripts/run_eval.py --real --record --max-calls 40   # re-record after a prompt change
+```
+
+With `--real`, the script first counts the cache misses and stops without any call if they exceed
+`--max-calls`. Exit codes: 0 all pass, 1 a case or ranking fails, 2 the run was stopped.
+
+**Results** (gpt-4o-mini; CV prompt v4, job prompt v5): **33 of 34 cases pass (97%); 6 of 6 ranking checks
+pass.**
+
+| Case | Category | Expected | Actual | Result |
+|---|---|---|---|---|
+| be_strong_1@jd_backend_engineer | strong | 85-100 | 100 | PASS |
+| be_strong_2@jd_backend_engineer | strong | 80-100 | 90 | PASS |
+| be_strong_3@jd_backend_engineer | strong | 80-100 | 90 | PASS |
+| be_partial_1@jd_backend_engineer | partial | 50-79 | 71 | PASS |
+| be_partial_2@jd_backend_engineer | partial | 50-79 | 74 | PASS |
+| be_weak_1@jd_backend_engineer | weak | 0-45 | 15 | PASS |
+| be_weak_2@jd_backend_engineer | weak | 0-30 | 15 | PASS |
+| be_junior_projects@jd_backend_engineer | junior_projects | 25-65 | 41 | PASS |
+| be_career_changer@jd_backend_engineer | career_changer | 15-55 +no_skill_roles | 39 +no_skill_roles | PASS |
+| be_stuffed@jd_backend_engineer | stuffed | 25-49 | 48 | PASS |
+| be_copied_reqs@jd_backend_engineer | copied_requirements | 45-79 +overlap | 68 +overlap | PASS |
+| da_strong_1@jd_data_analyst | strong | 85-100 | 100 | PASS |
+| da_strong_2@jd_data_analyst | strong | 80-100 | 90 | PASS |
+| da_strong_3@jd_data_analyst | strong | 80-100 | 95 | PASS |
+| da_partial_1@jd_data_analyst | partial | 50-79 | 60 | PASS |
+| da_partial_2@jd_data_analyst | partial | 50-79 | 68 | PASS |
+| da_weak_1@jd_data_analyst | weak | 0-30 | 20 | PASS |
+| da_weak_2@jd_data_analyst | weak | 0-45 | 18 | PASS |
+| da_junior_projects@jd_data_analyst | junior_projects | 25-65 | 60 | PASS |
+| da_career_changer@jd_data_analyst | career_changer | 15-55 | 60 +no_skill_roles | FAIL |
+| da_stuffed@jd_data_analyst | stuffed | 25-49 | 45 +no_skill_roles | PASS |
+| da_copied_reqs@jd_data_analyst | copied_requirements | 45-79 +overlap | 68 +overlap | PASS |
+| be_strong_1@jd_data_analyst | cross_job | 10-60 | 57 | PASS |
+| be_strong_2@jd_data_analyst | cross_job | 10-60 | 57 | PASS |
+| be_strong_3@jd_data_analyst | cross_job | 10-60 | 57 | PASS |
+| da_strong_1@jd_backend_engineer | cross_job | 10-55 | 52 | PASS |
+| da_strong_2@jd_backend_engineer | cross_job | 10-55 | 52 | PASS |
+| da_strong_3@jd_backend_engineer | cross_job | 10-55 | 44 | PASS |
+| x_pasted_backend@jd_backend_engineer | pasted_job | 422 | 422 | PASS |
+| x_pasted_analyst_reqs@jd_data_analyst | pasted_job | 422 | 422 | PASS |
+| x_short_backend@jd_backend_engineer | very_short | 422 | 422 | PASS |
+| x_short_analyst@jd_data_analyst | very_short | 422 | 422 | PASS |
+| x_cover_letter@jd_data_analyst | non_cv | 422 | 422 | PASS |
+| x_blog_post@jd_backend_engineer | non_cv | 422 | 422 | PASS |
+
+`+overlap` and `+no_skill_roles` are warnings: expected ones must appear, and an unexpected overlap warning fails
+the case.
+
+**Rankings**
+
+| Job | Check | Result |
+|---|---|---|
+| Backend engineer | lowest strong 90 > highest partial 74 | PASS |
+| Backend engineer | lowest partial 71 > highest weak or stuffed 48 | PASS |
+| Backend engineer | lowest strong 90 > highest cross-job 52 | PASS |
+| Data analyst | lowest strong 90 > highest partial 68 | PASS |
+| Data analyst | lowest partial 60 > highest weak or stuffed 45 | PASS |
+| Data analyst | lowest strong 90 > highest cross-job 57 | PASS |
+
+**What the evaluation found and fixed** (the first recorded run passed 27 of 34)
+- Pasted job text: a reworded posting and a bare requirements block are rejected with 422 before any model call.
+- Cover letter: it passed the document check and scored 68. Letter signals (salutation, "I am writing to apply",
+  sign-off) now reject it.
+- Birth date leak: "Born 1990" reached the model. Birth details are now removed with the other personal data.
+- Phone redaction ate dates: "2023.01 - 2023.12" and ISO ranges such as "2019-03 - 2021-07" were deleted as phone
+  numbers. Date ranges are now kept, and dotted ones are normalised to `YYYY-MM`.
+- Either-or requirements: "a BI tool such as Tableau or Power BI" was read as two required skills. It is now one
+  item that either tool satisfies.
+- Copied requirements: skills that appear only in text copied from the job now get no credit, with a warning that
+  names them.
+
+**Known limitations**
+- **Career changer with a shared generic skill.** A role that used one required skill counts in full as relevant
+  experience, so a teacher who kept grades in Excel gets 12.4 relevant years for the data analyst job
+  (`da_career_changer`: 60, label 15-55). Requiring two job skills per role fixes this case but breaks a genuine
+  marketing analyst (`da_partial_1`), so the case stays as a known failure, kept visible as a strict `xfail`.
+- Synthetic data only: the CVs are fictional, clean and well structured; real CVs are messier.
+- Small sample: 28 CVs, 2 jobs, 34 cases. The pass rate is a sanity check, not a measure of accuracy.
+- The labels were written by the author of the scoring rules. Committing them before recording limits this bias
+  but does not remove it.
+- Thresholds (overlap 25%, copied line 50%, document-check rules, credit weights) were tuned on few files.
+- English CVs and job descriptions only.
+
 ## Docker
 
 ```bash
@@ -237,17 +352,21 @@ docker run -p 8000:8000 --env-file .env cv-screening
 ```
 app/
   main.py          API routes and error mapping
-  service.py       pipeline: anonymize → extract → score
+  service.py       pipeline: check → anonymize → extract → score
   extraction.py    prompts, per-prompt versions, validation, retry
   scoring.py       deterministic weighted scoring
   experience.py    date math for roles: parsing, merging overlaps, years
   models.py        Pydantic models
   samples.py       read-only loader for the synthetic samples
   config.py        settings from .env
+  evaluation.py    evaluation labels, case checks, rankings, report table
+  eval_clients.py  replay, call budget and recording clients for the evaluation
   llm/             LLMClient interface, OpenAI client, disk cache
-  parsing/         PDF text extraction, anonymization, document check, text overlap
+  parsing/         PDF text, anonymization, date ranges, document check, text overlap
   static/          web interface: index.html, style.css, app.js
 data/synthetic/    synthetic CVs and job descriptions
+data/eval/         evaluation CVs, labels.json, recorded extractions
 docs/              README screenshot
-tests/             unit, API, frontend and end-to-end tests
+scripts/           run_eval.py
+tests/             unit, API, frontend, end-to-end and evaluation tests
 ```
